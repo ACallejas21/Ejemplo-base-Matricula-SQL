@@ -1,0 +1,4510 @@
+--Usamos la tabla temporal de SQL
+USE tempdb
+GO
+
+---------------------------------------------------------------------------------------------------------------------------
+-------------------------------------CREAMOS LA BASE DE DATOS MODULO MATRICULO---------------------------------------------
+CREATE DATABASE DBMatricula
+GO
+
+------------------------------------------------------------------------------
+USE DBMatricula
+GO
+
+---------------------------------------------------------------------------------------------------------------------------
+---------------------------------------------CREACION DE LAS TABLAS--------------------------------------------------------
+
+-- Tabla Matricula
+-------------------
+CREATE TABLE Matricula
+(
+	idMatricula INT IDENTITY (1,1) NOT NULL,
+	idAlumno CHAR(13) NOT NULL,
+	idPeriodo INT NOT NULL,
+	fechaMatricula DATE NOT NULL,
+	pago BIT NOT NULL,
+
+	--Llave Primaria
+	CONSTRAINT PK_Matricula_idMatricula PRIMARY KEY CLUSTERED(idMatricula)
+)
+GO
+
+
+-- Tabla Materias
+-------------------
+CREATE TABLE Materia
+(
+	idMateria INT IDENTITY (1,1) NOT NULL,
+	nombreMateria NVARCHAR (255) NOT NULL,
+	creditosMateria INT NOT NULL,
+
+	--Llave Primaria
+	CONSTRAINT PK_Materia_idMateria PRIMARY KEY CLUSTERED(idMateria),
+	CONSTRAINT UK_Materia_nombreMateria UNIQUE NONCLUSTERED(nombreMateria)
+)
+GO
+
+-- Tabla Alumnos
+--------------------
+CREATE TABLE Alumno
+(
+	idAlumno CHAR(13) NOT NULL,
+	primerNombre NVARCHAR (50) NOT NULL,
+	segundoNombre NVARCHAR (50), -- Este campo no es obligatorio por que no todas las personas tienen segundo nombre
+	primerApellido NVARCHAR (50) NOT NULL,
+	segundoApellido NVARCHAR (50) NOT NULL,
+	idSexo INT NOT NULL, -- Dato extraido de la tabla de Genero
+	fechaNacimiento DATE NOT NULL,
+	idDireccion INT NOT NULL, -- Dato extraido de la tabla de direccion
+	edad INT NOT NULL,
+	telefono VARCHAR (8) NOT NULL ,
+	correoElectronico VARCHAR (125)NOT NULL,
+	estadoCivil VARCHAR (8)NOT NULL,
+	nacionalidad NVARCHAR (50)NOT NULL,
+	idFacultad INT NOT NULL,
+
+	--Llave Primaria
+	CONSTRAINT PK_Alumno_idAlumno PRIMARY KEY CLUSTERED(idAlumno),
+	CONSTRAINT UK_Alumno_telefono UNIQUE NONCLUSTERED(telefono),
+	CONSTRAINT UK_Alumno_correoElectronico UNIQUE NONCLUSTERED(correoElectronico)
+)
+GO
+
+-- Tabla Docentes
+--------------------
+CREATE TABLE Docente
+(
+	idDocente CHAR(13) NOT NULL,
+	primerNombre NVARCHAR (50) NOT NULL,
+	segundoNombre NVARCHAR (50),
+	primerApellido NVARCHAR (50) NOT NULL,
+	segundoApellido NVARCHAR (50) NOT NULL,
+	idSexo INT NOT NULL,-- Dato extraido de la tabla sexo
+	idDireccion INT NOT NULL, -- dato extraido de la tabla de direccíon
+	fechaNacimiento DATE NOT NULL,
+	edad INT NOT NULL,
+	estadoCivil VARCHAR (8) NOT NULL,
+	idTitulo INT NOT NULL,-- dato extraido de la tabla de titulo
+	correoElectronico VARCHAR (125) NOT NULL,
+	telefono VARCHAR (8) NOT NULL,
+	nacionalidad NVARCHAR (50),
+
+	--Llave Primaria
+	CONSTRAINT PK_Docente_idDocente PRIMARY KEY CLUSTERED(idDocente),
+	CONSTRAINT UK_Docente_telefono UNIQUE NONCLUSTERED (telefono),
+	CONSTRAINT UK_Docente_correoElectronico UNIQUE NONCLUSTERED (correoElectronico)
+)
+GO
+
+-- Tabla de Aulas
+-------------------
+CREATE TABLE Aula
+(
+	idAula INT IDENTITY (1,1) NOT NULL,
+	numeroEdificio INT NOT NULL,
+	
+	--Llave Primaria
+	CONSTRAINT PK_Aula_idAula PRIMARY KEY CLUSTERED(idAula)
+)
+GO
+
+-- Tabla de Horarios
+----------------------
+CREATE TABLE Horario  --Esta tabla nos sirve para uniones)
+(
+	idHorario INT IDENTITY (1,1) NOT NULL,
+	idDocente CHAR(13) NOT NULL, --Llave foranea de la tabla de Docente
+	Hora VARCHAR (5) NOT NULL,
+	idMateria INT NOT NULL, --Llave foranea de la tabla de Aula
+	idAula INT NOT NULL,
+	Dias VARCHAR(3) NOT NULL
+
+	--Llave Primaria
+	CONSTRAINT PK_Horario_idHorario PRIMARY KEY CLUSTERED(idHorario)
+)
+GO
+
+-- Tabla Facultades
+---------------------
+CREATE TABLE Facultad
+(
+	idFacultad INT IDENTITY (1,1) NOT NULL,
+	nombreFacultad VARCHAR (125) NOT NULL,
+
+	--Llave Primaria
+	CONSTRAINT PK_Facultad_idFacultad PRIMARY KEY CLUSTERED(idFacultad)
+)
+GO
+
+-- Tabla Pagos
+------------------
+CREATE TABLE Pago
+(
+	idPago INT IDENTITY (1,1) NOT NULL,
+	idFacultad INT NOT NULL, --Llave foranea de la tabla de Facultad
+	mensualidad MONEY NOT NULL,
+	idBanco INT NOT NULL, --Llave foranea de la tabla de Banco
+	fechaPago DATE NOT NULL,
+	estado BIT NOT NULL,
+	idAlumno CHAR(13), --Llave Foranea tabla Alumno
+
+	--Llave Primaria
+	CONSTRAINT PK_Pago_idPago PRIMARY KEY CLUSTERED(idPago)
+)
+GO
+
+-- Tabla Direccíon
+--------------
+CREATE TABLE Direccion
+(
+	idDireccion INT IDENTITY (1,1) NOT NULL,
+	departamento NVARCHAR (50) NOT NULL,
+	municipio NVARCHAR (50) NOT NULL,
+	barrio NVARCHAR (50) NOT NULL,
+
+	--Llave Primaria
+	CONSTRAINT PK_Direccion_idDireccion PRIMARY KEY CLUSTERED(idDireccion)
+)
+GO
+
+-- Tabla genero
+----------------
+CREATE TABLE Sexo
+(
+	idSexo INT IDENTITY (1,1) NOT NULL,
+	tipo CHAR (1) NOT NULL,
+
+	--Llave Primaria
+	CONSTRAINT PK_Genero_idSexo PRIMARY KEY CLUSTERED(idSexo)	
+)
+GO
+
+-- Tabla pensums
+-------------------
+CREATE TABLE Pensum
+(
+	idPensum INT IDENTITY (1,1) NOT NULL,
+	idFacultad INT NOT NULL,
+	idMateria INT NOT NULL,
+
+	--Llave Primaria
+	CONSTRAINT PK_Pensum_idPensum PRIMARY KEY CLUSTERED(idPensum)
+)
+GO
+
+-- Tabla Calificaiones
+-------------------------
+CREATE TABLE Calificacion
+(
+	idCalificacion INT IDENTITY(1,1),
+	idAlumno CHAR (13) NOT NULL,
+	idMateria INT NOT NULL,  -- LLave foranea de la tabla Materia
+	primerParcial INT NOT NULL,
+	segundoParcial INT NOT NULL,
+	tercerParcial INT NOT NULL,
+
+	--Llave Primaria
+	CONSTRAINT PK_Calificacion_idcalificacion PRIMARY KEY CLUSTERED(idCalificacion)
+)
+GO
+
+-- Tabla Bancos
+-------------------
+CREATE TABLE Banco
+(
+	idBanco INT IDENTITY (1,1) NOT NULL,
+	nombreBanco VARCHAR (45) NOT NULL,
+
+	--Llave Primaria
+	CONSTRAINT PK_Banco_idBanco PRIMARY KEY CLUSTERED(idBanco)
+)
+GO
+
+-- Tabla titulos de los catedraticos
+---------------------------------------
+CREATE TABLE Titulo_Catedratico
+(
+	idTitulo INT IDENTITY (1,1) NOT NULL,
+	nombreTitulo NVARCHAR (125) NOT NULL,
+
+	--Llave Primaria
+	CONSTRAINT PK_TituloCatedratico_idTitulo PRIMARY KEY CLUSTERED(idTitulo)
+)
+GO
+
+-- Tabla Alumnos por Clases
+-----------------------------
+CREATE TABLE Alumnos_Clase
+(
+	idAlumnoClase INT IDENTITY(1,1),
+	idHorario INT NOT NULL,
+	idAlumno CHAR (13) NOT NULL,
+
+	--Llave Primaria
+	CONSTRAINT PK_AlumnoClase_idAlumnoClase PRIMARY KEY CLUSTERED(idAlumnoClase)
+)
+GO
+
+-- Tabla periodos
+------------------
+CREATE TABLE Periodo
+(
+	idPeriodo INT IDENTITY (1,1) NOT NULL,
+	periodoOrdinal VARCHAR (25) NOT NULL,
+	anio INT NOT NULL,
+
+	--Llave Primaria
+	CONSTRAINT PK_Periodo_idPeriodo PRIMARY KEY CLUSTERED(idPeriodo)
+)
+GO
+
+-- Tabla Tipo de Cancelaciones
+--------------------------------
+CREATE TABLE Tipos_de_Cancelacion
+(
+	idTipoCancelacion INT IDENTITY (1,1) NOT NULL,
+	tipo VARCHAR(50) NOT NULL,
+
+	--Llave Primaria
+	CONSTRAINT PK_TipoCancelaciones_idTipoCancelacion PRIMARY KEY CLUSTERED(idTipoCancelacion)
+)
+GO
+
+-- Tabla Cancelaciones
+------------------------
+CREATE TABLE Cancelacion
+(
+	idCancelacion INT IDENTITY (1,1) NOT NULL,
+	idAlumno CHAR (13) NOT NULL,
+	idMateria INT NOT NULL,
+	tipoDeCancelacion INT NOT NULL,
+
+	--Llave Primaria
+	CONSTRAINT PK_Cancelacion_idCancelacion PRIMARY KEY CLUSTERED(idCancelacion)
+)
+GO
+
+-- Tabla Matriculas por Periodo
+----------------------------------
+CREATE TABLE Matricula_Periodo
+(
+	idMatriculaPeriodo INT IDENTITY (1,1) NOT NULL,
+	idPeriodo INT NOT NULL,
+	idMatricula INT NOT NULL,
+
+	--Llave Primaria
+	CONSTRAINT PK_MatriculaPeriodo_idMatriculaPeriodo PRIMARY KEY CLUSTERED(idMatriculaPeriodo)
+)
+GO
+
+CREATE TABLE Asesoria
+(
+	IdAsesoria INT IDENTITY(1,1) NOT NULL,
+	idAlumno CHAR(13),
+	IdMateria INT,
+
+	CONSTRAINT PK_Asesoria_IdAsesoria PRIMARY KEY CLUSTERED(idAsesoria)
+)
+GO
+
+/*CREATE TABLE Prematricula
+(
+	idPrematricula INT IDENTITY(1,1) NOT NULL,
+	idMateria INT,
+	idAlumno CHAR (13),
+
+	CONSTRAINT PK_Prematricula_IdPrematricula PRIMARY KEY CLUSTERED(idPrematricula)
+)
+GO*/
+
+
+
+--------------------------------------------------------------------------------------------------------------------------------------------
+-------------------------------------| CREACION DE LAS LLAVES FORANEAS |--------------------------------------------------------------------
+
+-- Alteramos la tabla de Matricula para agregar las llaves foraneas
+ALTER TABLE Matricula
+		-- -----                  Llaves foraneas           ------ -----
+
+	--Llave que nos dara acceso a la tabla de alumnos
+	ADD CONSTRAINT FK_Matricula_idAlumno FOREIGN KEY (idAlumno) REFERENCES Alumno(idAlumno)
+		ON UPDATE CASCADE
+		ON DELETE NO ACTION,
+	CONSTRAINT FK_Matricula_idPeriodo FOREIGN KEY (idPeriodo) REFERENCES Periodo(idPeriodo)
+		ON UPDATE CASCADE
+		ON DELETE NO ACTION
+
+	--Llave que nos dara acceso a la tabla de Periodo
+GO
+
+-- Alteramos la tabla de Alumno para agregar las llaves foraneas
+ALTER TABLE Alumno
+
+	    ---- Creacion de las llaves foraneas -------
+
+	--Llave que nos dara acceso a la tabla del genero del alumno
+	ADD CONSTRAINT FK_Alumno_idSexo FOREIGN KEY (idSexo) REFERENCES Sexo(idSexo)
+		ON UPDATE CASCADE
+		ON DELETE NO ACTION,
+	--Llave que nos dara acceso a la tabla de la direccion
+	CONSTRAINT FK_Alumno_idDireccion FOREIGN KEY (idDireccion) REFERENCES Direccion(idDireccion)
+		ON UPDATE CASCADE
+		ON DELETE NO ACTION,
+	--Llave acceso a tabla facultad
+	CONSTRAINT FK_Alumno_IdFacultad FOREIGN KEY (idFacultad) REFERENCES Facultad(idFacultad)
+		ON UPDATE CASCADE
+		ON DELETE NO ACTION
+
+GO
+
+-- Alteramos la tabla de Docente para agregar las llaves foraneas
+ALTER TABLE Docente
+
+		---- Creacion de las llaves foraneas -------
+
+	--Llave que nos dara acceso a la tabla del genero del alumno
+	ADD CONSTRAINT FK_Docente_idSexo FOREIGN KEY (idSexo) REFERENCES Sexo(idSexo)
+		ON UPDATE CASCADE
+		ON DELETE NO ACTION,
+	--Llave que nos dara acceso a la tabla de la direccion
+	CONSTRAINT FK_Docente_idDireccion FOREIGN KEY (idDireccion) REFERENCES Direccion(idDireccion)
+		ON UPDATE CASCADE
+		ON DELETE NO ACTION,
+	--Llave que nos dara acceso a la tabla del Titulo
+	CONSTRAINT FK_Docente_idTitulo FOREIGN KEY (idTitulo) REFERENCES Titulo_Catedratico(idTitulo)
+		ON UPDATE CASCADE
+		ON DELETE NO ACTION
+
+GO
+
+-- Alteramos la tabla Horario para agregar las llaves foraneas
+ALTER TABLE Horario
+
+		---- Creacion de las llaves foraneas -------
+
+	--Llave que nos dara acceso a la tabla del Docente
+	ADD CONSTRAINT FK_Horario_idDocente FOREIGN KEY (idDocente) REFERENCES Docente(idDocente)
+		ON UPDATE CASCADE
+		ON DELETE NO ACTION,
+	--Llave que nos dara acceso a la tabla de la Aula
+	CONSTRAINT FK_Horario_idMateria FOREIGN KEY (idMateria) REFERENCES Materia(idMateria)
+		ON UPDATE CASCADE
+		ON DELETE NO ACTION,
+	--
+	CONSTRAINT FK_Horario_idAula FOREIGN KEY (idAula) REFERENCES Aula(idAula)
+		ON UPDATE CASCADE
+		ON DELETE NO ACTION
+GO
+
+-- Alteramos la tabla Pago para agregar las llaves foraneas
+ALTER TABLE Pago
+
+		---- Creacion de las llaves foraneas -------
+
+	--Llave que nos dara acceso a la tabla de la facultad 
+	ADD CONSTRAINT FK_Pago_idFacultad FOREIGN KEY (idFacultad) REFERENCES Facultad(idFacultad)
+		ON UPDATE CASCADE
+		ON DELETE NO ACTION,
+	--Llave que nos dara acceso a la tabla de Banco 
+	CONSTRAINT FK_Pago_idBanco FOREIGN KEY (idBanco) REFERENCES Banco(idBanco)
+		ON UPDATE CASCADE
+		ON DELETE NO ACTION,
+	--Llave que dará acceso a tabla Alumno
+	CONSTRAINT FK_Pago_idAlumno FOREIGN KEY (idAlumno) REFERENCES Alumno(idAlumno)
+		ON UPDATE NO ACTION
+		ON DELETE NO ACTION
+
+GO
+
+-- Alteramos la tabla Pensum para agregar las llaves foraneas
+ALTER TABLE Pensum
+
+		---- Creacion de las llaves foraneas -------
+
+	--Llave que nos dara acceso a la tabla de la facultad 
+	ADD CONSTRAINT FK_Pensum_idFacultad FOREIGN KEY (idFacultad) REFERENCES Facultad(idFacultad)
+		ON UPDATE CASCADE
+		ON DELETE NO ACTION,
+	--Llave que nos dara acceso a la tabla de Materia
+	CONSTRAINT FK_Pensum_idMateria FOREIGN KEY (idMateria) REFERENCES Materia(idMateria)
+		ON UPDATE CASCADE
+		ON DELETE NO ACTION
+
+GO
+
+-- Alteramos la tabla Calificacion para agregar las llaves foraneas
+ALTER TABLE Calificacion
+
+		---- Creacion de las llaves foraneas -------
+	--Llave que nos dara acceso a la tabla de Materia
+	ADD CONSTRAINT FK_Calificacion_idMateria FOREIGN KEY (idMateria) REFERENCES Materia(idMateria)
+		ON UPDATE CASCADE
+		ON DELETE NO ACTION,
+
+	CONSTRAINT FK_Calificacion_idAlumno FOREIGN KEY (idAlumno) REFERENCES Alumno(idAlumno)
+		ON UPDATE CASCADE
+		ON DELETE NO ACTION
+
+GO
+
+-- Alteramos la tabla Almunos_clase para agregar las lalves foraneas
+ALTER TABLE Alumnos_Clase
+
+		---- Creacion de las llaves foraneas -------
+
+	--Llave que nos dara acceso a la tabla de Horario
+	ADD CONSTRAINT FK_Alumnos_Clase_idHorario FOREIGN KEY (idHorario) REFERENCES Horario(idHorario)
+		ON UPDATE CASCADE
+		ON DELETE NO ACTION,
+    --Llave que nos dara acceso a la tabla de Alumno
+	CONSTRAINT FK_Alumnos_Clase_idAlumnos FOREIGN KEY (idAlumno) REFERENCES Alumno(idAlumno)
+		ON UPDATE NO ACTION
+		ON DELETE NO ACTION
+GO
+
+
+-- Alteramos la tabla de cancelacion para agregar las llaves foraneas
+ALTER TABLE Cancelacion
+
+		---- Creacion de las llaves foraneas -------
+
+	--Llave que nos dara acceso a la tabla de Alumno
+	ADD CONSTRAINT FK_Cancelacion_idAlumno FOREIGN KEY (idAlumno) REFERENCES Alumno(idAlumno)
+		ON UPDATE CASCADE
+		ON DELETE NO ACTION,
+	--Llave que nos dara acceso a la tabla de Materia
+	CONSTRAINT FK_Cancelacion_idMateria FOREIGN KEY (idMateria) REFERENCES Materia(idMateria)
+		ON UPDATE CASCADE
+		ON DELETE NO ACTION,
+		--
+	CONSTRAINT FK_Cancelacion_tipoDeCancelacion FOREIGN KEY (tipoDeCancelacion) REFERENCES Tipos_de_Cancelacion(idTipoCancelacion)
+		ON UPDATE CASCADE
+		ON DELETE NO ACTION
+
+GO
+
+-- Alteramos la tabla de Matricula_Periodo para agregar las llaves foraneas
+ALTER TABLE Matricula_Periodo
+
+	---- Creacion de las llaves foraneas -------
+
+	--Llave que nos dara acceso a la tabla de Matricula
+	ADD CONSTRAINT FK_MatriculaPeriodo_idMatricula FOREIGN KEY (idMatricula) REFERENCES Matricula(idMatricula)
+		ON UPDATE CASCADE
+		ON DELETE NO ACTION,
+	--Llave que nos dara acceso a la tabla de Matricula
+	CONSTRAINT FK_MatriculaPeriodo_idPeriodo FOREIGN KEY (idPeriodo) REFERENCES Periodo(idPeriodo)
+		ON UPDATE NO ACTION
+		ON DELETE NO ACTION
+
+GO
+
+ALTER TABLE Asesoria
+
+		---- Creacion de las llaves foraneas -------
+
+	--Llave que nos dara acceso a la tabla de la Materia
+	ADD CONSTRAINT FK_Asesoria_IdMateria FOREIGN KEY (IdMateria) REFERENCES Materia(IdMateria)
+		ON UPDATE CASCADE
+		ON DELETE NO ACTION,
+	--Llave que nos dara acceso a la tabla de Alumno
+	CONSTRAINT FK_Alumno_idAlumno FOREIGN KEY (idAlumno) REFERENCES Alumno(idAlumno)
+		ON UPDATE CASCADE
+		ON DELETE NO ACTION
+
+GO
+
+/*ALTER TABLE Prematricula
+
+		---- Creacion de las llaves foraneas -------
+
+	--Llave que nos dara acceso a la tabla de la Clase
+	ADD CONSTRAINT FK_Prematricula_IdMateria FOREIGN KEY (IdMateria) REFERENCES Materia(IdMateria),
+	--Llave que nos dara acceso a la tabla de Alumno
+	CONSTRAINT FK_Prematricula_idAlumno FOREIGN KEY (idAlumno) REFERENCES Alumno(idAlumno)
+
+GO*/
+
+
+-------------------------------------------------|CREACION DE CHECKS|---------------------------------------------
+-----------------------------------------------------------------------------------------------------------------
+--TABLA Alumnos_Clase
+ALTER TABLE Alumnos_Clase WITH CHECK
+	ADD CONSTRAINT CHK_AlumnoClase$idHoraio$VerificarCamposVacios
+	CHECK (LEN(idHorario) > 0),
+
+	CONSTRAINT CHK_AlumnoClase$idAlumno$VarificarCamposVacios
+	CHECK (LEN(idAlumno) > 0)
+GO
+
+--TABLA Aula
+ALTER TABLE AULA WITH CHECK
+	ADD CONSTRAINT CHK_Aula$NumeroEdificio$VerificarSoloNumeros
+	CHECK (NumeroEdificio LIKE '%[1-9]%')
+	
+GO
+
+--TABLA BANCO
+ALTER TABLE Banco WITH CHECK
+	ADD CONSTRAINT CHK_Banco$NombreBanco$VerificarNombre
+	CHECK (nombreBanco  LIKE 'Banco de Occidente' OR nombreBanco LIKE 'Bampais' OR  nombreBanco LIKE 'Tesoreria')
+GO
+
+
+--TABLA Calificacion
+ALTER TABLE Calificacion WITH CHECK
+	------------------------PRIMER PARCIAL-----------------------------------
+	ADD CONSTRAINT CHK_Calificacion$PrimerParcial$VerificarNoLetras
+	CHECK (primerParcial NOT LIKE '%A-Z%'),
+
+	CONSTRAINT CHK_Calificacion$PrimerParcial$De0a100
+	CHECK (primerParcial >= 0 OR primerParcial <= 100),
+
+	CONSTRAINT DFLT_Calificacion$PrimerParcial$0PorDefecto
+	DEFAULT '0' FOR primerParcial,
+
+	----------------------SEGUNDO PARCIAL------------------------------------
+	CONSTRAINT CHK_Calificacion$SegundoParcial$VerificarNoLetras
+	CHECK (segundoParcial NOT LIKE '%A-Z%'),
+
+	CONSTRAINT CHK_Calificacion$SegundoParcial$De0a100
+	CHECK (segundoParcial >= 0 OR segundoParcial <= 100),
+
+	CONSTRAINT DFLT_Calificacion$SegundoParcial$0PorDefecto
+	DEFAULT '0' FOR segundoParcial,
+
+	----------------------TERCER PARCIAL------------------------------------
+	CONSTRAINT CHK_Calificacion$TercerParcial$VerificarNoLetras
+	CHECK (tercerParcial NOT LIKE '%A-Z%'),
+
+	CONSTRAINT CHK_Calificacion$TercerParcial$De0a100
+	CHECK (tercerParcial >= 0 OR tercerParcial <= 100),
+
+	CONSTRAINT DFLT_Calificacion$TercerParcial$0PorDefecto
+	DEFAULT '0' FOR tercerParcial
+GO
+
+--TABLA Cancelacion
+--TABLA SEXO
+ALTER TABLE Sexo
+	ADD CONSTRAINT CHK_Sexo$$Solo_F_o_M
+	CHECK (tipo LIKE 'F' OR tipo LIKE 'M'),
+
+	CONSTRAINT CHK_Sexo$tipo$VarificarCamposVacios
+	CHECK (LEN(tipo) > 0)
+GO
+
+--------------------------------------------------------------------------------
+  -- Para la tabla de Docente --
+
+ALTER TABLE Docente WITH CHECK
+    ---     Checks dedicados a evitar que los campos esten vacios   ---
+
+	--Check que verfica que el campo idDocente no este vacio
+	ADD CONSTRAINT CHK_Docente$idDocente$VerificarCamposVacios
+	CHECK (LEN(idDocente) > 0),
+
+	--Check que verfica que el campo primer nombre de el docente no este vacio  
+	CONSTRAINT CHK_Docente$primerNombre$VerificarCampoVacios
+	CHECK (LEN(primerNombre) > 0),
+
+	--Check que verfica que el campo segundo nombre de el docente no este vacio
+	CONSTRAINT CHK_Docente$segundoNombre$VerificarCampoVacios
+	CHECK (LEN(segundoNombre) > 0),
+
+	--Check que verfica que el campo Primer Apellido de el docente no este vacio
+	CONSTRAINT CHK_Docente$primerApellido$VerificarCampoVacios
+	CHECK (LEN(primerApellido) > 0),
+
+	--Check que verfica que el campo Segundo Apellido de el docente no este vacio
+	CONSTRAINT CHK_Docente$segundoApellido$VerificarCampoVacios
+	CHECK (LEN(segundoApellido) > 0), 
+
+	--Check que verfica que el campo idSexo de el docente no este vacio
+	CONSTRAINT CHK_Docente$idSexo$VerificarCampoVacios
+	CHECK (LEN(idSexo) > 0),
+
+	--Check que verfica que el campo idDireccion de el docente no este vacio
+	CONSTRAINT CHK_Docente$idDireccion$VerificarCampoVacios
+	CHECK (LEN(idDireccion) > 0),
+
+	--Check que verfica que el campo Fecha de Nacimiento de el docente no este vacio
+	CONSTRAINT CHK_Docente$fechaNacimiento$VerificarCampoVacios
+	CHECK (LEN(fechaNacimiento) > 0),
+
+	--Check que verfica que el campo Edad de el docente no este vacio
+	CONSTRAINT CHK_Docente$edad$VerificarCampoVacios
+	CHECK (LEN(edad) > 0),
+
+    --Check que verfica que el campo Estad civil de el docente no este vacio
+	CONSTRAINT CHK_Docente$estadoCivil$VerificarCampoVacios
+	CHECK (LEN(estadoCivil) > 0),
+
+	--Check que verfica que el campo Titulo de el docente no este vacio
+	CONSTRAINT CHK_Docente$idTitulo$VerificarCampoVacios
+	CHECK (LEN(idTitulo) > 0),
+    
+	--Check que verfica que el campo Correo electronico de el docente no este vacio
+	CONSTRAINT CHK_Docente$correoElectronico$VerificarCampoVacios
+	CHECK (LEN(correoElectronico) > 0),
+
+	--Check que verfica que el campo Telefono de el docente no este vacio
+	CONSTRAINT CHK_Docente$telefono$VerificarCampoVacios
+	CHECK (LEN(telefono) > 0),
+
+	--Check que verfica que el campo Nacionalidad de el docente no este vacio
+	CONSTRAINT CHK_Docente$nacionalidad$VerificarCampoVacios
+	CHECK (LEN(nacionalidad) > 0),
+
+	-------------- Checks que serviran de mascaras para los campos -------------------
+
+	--Check que verfica que el id de el docente tenga una mascara
+	CONSTRAINT CHK_Docente$idDocente$mascaradeID
+	CHECK (idDocente LIKE '[0-1][0-8][0-9][0-9][1-2][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9]'),
+
+	--Check que verfica que el telefono de el docente tenga una mascara para las distintas operadoras de el pais
+	CONSTRAINT CHK_Docente$idDocente$mascaraRedclaroTigo
+	CHECK (telefono LIKE '[3,8,9][0-9][0-9][0-9][0-9][0-9][0-9][0-9]'),
+
+	----- Checks que verifican que algunos campos solo permitan numeros o solamente letras ----
+    
+	--Verificar que el campo de id de docente no permita letras
+	CONSTRAINT CHK_Docente$idDocente$Verificarsolonumeros
+	CHECK (idDocente NOT LIKE '%A-Z%'),
+	
+	--Verificar que el campo de primer Nombre no permita numeros 
+    CONSTRAINT CHK_Docente$primerNombre$VerificarSoloLetras
+	CHECK (primerNombre NOT LIKE '%[1-9]%'),
+
+	--Verificar que el campo de Segundo Nombre no permita numeros 
+    CONSTRAINT CHK_Docente$segundoNombre$VerificarSoloLetras
+	CHECK (segundoNombre NOT LIKE '%[1-9]%'),
+
+	--Verificar que el campo de primer Apellido no permita numeros 
+    CONSTRAINT CHK_Docente$primerApellido$VerificarSoloLetras
+	CHECK (primerApellido NOT LIKE '%[1-9]%'),
+
+	--Verificar que el campo de segundo Apellido no permita numeros 
+    CONSTRAINT CHK_Docente$segundoApellido$VerificarSoloLetras
+	CHECK (segundoApellido NOT LIKE '%[1-9]%'),
+
+	--Verificar que el campo de fecha de nacimiento no permita letras
+	CONSTRAINT CHK_Docente$fechaNacimiento$Verificarsolonumeros
+	CHECK (fechaNacimiento NOT LIKE '%A-Z%'),
+
+	CONSTRAINT CHK_Docente$fechaNacimiento$FechaMenorAActual
+	CHECK (fechaNacimiento < GETDATE()),
+
+	CONSTRAINT CHK_Docente$FechaNacimiento$MayorA18
+	CHECK (fechaNacimiento <= DATEADD(YEAR, -22,GETDATE())),
+
+	--Verificar que el campo de edad no permita letras
+	CONSTRAINT CHK_Docente$edad$Verificarsolonumeros
+	CHECK (edad NOT LIKE '%A-Z%'),
+
+	--Verificar que el campo de estado civil no permita numeros 
+    CONSTRAINT CHK_Docente$estadoCivil$VerificarSoloLetras
+	CHECK (estadoCivil NOT LIKE '%[1-9]%'),
+
+	--Verificar que el campo de telefono no permita letras
+	CONSTRAINT CHK_Docente$telefono$Verificarsolonumeros
+	CHECK (telefono NOT LIKE '%A-Z%'),
+
+	--Verificar que el campo de nacionalidad no permita numeros 
+    CONSTRAINT CHK_Docente$nacionalidad$VerificarSoloLetras
+	CHECK (nacionalidad NOT LIKE '%[1-9]%'),
+
+	--------------------------------------------------------------------
+	--Verificar que el campo de edad permita edades entre 10 y 100   
+	CONSTRAINT CHK_Docente$edad$De10a100
+	CHECK (edad >= 10 OR edad <= 100),
+
+	--Verificar que el campo de estado civil sea soltero casado, divorciado, viudo permita edades entre 10 y 100 
+	CONSTRAINT CHK_Docente$estadoCivil$VerificarTiposDeEstadoCivil
+	CHECK (estadoCivil  LIKE 'Soltero' OR estadoCivil LIKE 'Casado' OR estadoCivil LIKE 'Divorciado' OR estadoCivil LIKE 'Viudo')
+
+GO
+
+----- Para la tabla Matricula_Periodo  ------
+
+ALTER TABLE Matricula_Periodo WITH CHECK
+
+     --Check que verfica que el campo idMatriculaPeriodo no este vacio
+	ADD CONSTRAINT CHK_Matricula_Periodo$idMatriculaPeriodo$VerificarCamposVacios
+	CHECK (LEN(idMatriculaPeriodo) > 0),
+
+	    --Check que verfica que el campo idPerido no este vacio
+	CONSTRAINT CHK_Matricula_Periodo$idPeriodo$VerificarCamposVacios
+	CHECK (LEN(idPeriodo) > 0),
+
+	    --Check que verfica que el campo idMatricula no este vacio
+	CONSTRAINT CHK_Matricula_Periodo$idMatricula$VerificarCamposVacios
+	CHECK (LEN(idMatricula) > 0),
+
+	--Verificar que el campo de idMatriculaPeriodo no permita letras
+    CONSTRAINT CHK_Matricula_Periodo$idMatriculaPeriodo$Verificarsolonumeros
+	CHECK (idMatriculaPeriodo NOT LIKE '%A-Z%')
+
+
+GO
+
+----- Para la Pago ------
+ALTER TABLE Pago WITH CHECK
+  
+   ---     Checks dedicados a evitar que los campos esten vacios   ---
+
+	--Check que verfica que el campo idPago no este vacio
+	ADD CONSTRAINT CHK_Pago$idPago$VerificarCamposVacios
+	CHECK (LEN(idPago) > 0),
+
+	--Check que verfica que el campo idFacultad no este vacio
+	CONSTRAINT CHK_Pago$idFacultad$VerificarCamposVacios
+	CHECK (LEN(idFacultad) > 0),
+    
+	--Check que verfica que el campo Mensualidad no este vacio
+	CONSTRAINT CHK_Pago$mensualidad$VerificarCamposVacios
+	CHECK (LEN(mensualidad) > 0),
+
+	CONSTRAINT CHK_Pago$mensualidad$NoSeaNegativo
+	CHECK (mensualidad > 0),
+
+	--Check que verfica que el campo idBanco no este vacio
+	CONSTRAINT CHK_Pago$idBanco$VerificarCamposVacios
+	CHECK (LEN(idBanco) > 0),
+
+	--Check que verfica que el campo Fecha de Pago no este vacio
+	CONSTRAINT CHK_Pago$fechaPago$VerificarCamposVacios
+	CHECK (LEN(fechaPago) > 0),
+
+	--Check que verfica que el campo Fecha de Pago no este vacio
+	CONSTRAINT CHK_Pago$estado$VerificarCamposVacios
+	CHECK (LEN(estado) > 0),
+
+	--Check que verfica que el campo idAlumno no este vacio
+	CONSTRAINT CHK_Pago$idAlumno$VerificarCamposVacios
+	CHECK (LEN(idAlumno) > 0),
+
+	---------------------------------------------------------------------
+
+	--Verificar que el campo de idPago no permita letras
+    CONSTRAINT CHK_Pago$idPago$Verificarsolonumeros
+	CHECK (idPago NOT LIKE '%A-Z%'),
+
+	--Verificar que el campo de mensualidad no permita letras
+    CONSTRAINT CHK_Pago$mensualidad$Verificarsolonumeros
+	CHECK (mensualidad NOT LIKE '%A-Z%'),
+
+	CONSTRAINT CHK_Pago$estado$Verificarsolonumeros
+	CHECK (estado NOT LIKE '%A-Z%')
+
+GO
+
+ALTER TABLE Pensum WITH CHECK
+
+  ---     Checks dedicados a evitar que los campos esten vacios   ---
+
+	--Check que verfica que el campo idPago no este vacio
+	ADD CONSTRAINT CHK_Pensum$idPensum$VerificarCamposVacios
+	CHECK (LEN(idPensum) > 0),
+
+	--Check que verfica que el campo idFacultad no este vacio
+	CONSTRAINT CHK_Pensum$idFacultad$VerificarCamposVacios
+	CHECK (LEN(idFacultad) > 0),
+
+	--Check que verfica que el campo idFacultad no este vacio
+	CONSTRAINT CHK_Pensum$idMateria$VerificarCamposVacios
+	CHECK (LEN(idMateria) > 0),
+
+	-------------------------------------------------------------
+
+	--Verificar que el campo de idPensum no permita letras
+    CONSTRAINT CHK_Pensum$idPensum$Verificarsolonumeros
+	CHECK (idPensum NOT LIKE '%A-Z%')
+
+GO
+--------------------------------------------------------------------------------------------------------------------
+
+----- Tabla matricula
+ALTER TABLE Matricula WITH CHECK
+-- Verificamos que el campo alumno no acepte campos vacios
+	ADD CONSTRAINT CHK_Matricula$idAlumno$verificaQueNoEsteVacio
+		CHECK (LEN(idAlumno) > 0),
+-- verificamos que el campo idPeriodo no acepte campos vacios
+	CONSTRAINT CHK_Matricula$idPeriodo$VerificarValorVacio
+		CHECK (LEN(idPeriodo) > 0),
+-- Verificamos que el campo fecha no acepte campos vacios
+	CONSTRAINT CHK_Matricula$fechaMatricula$VerificaValorVacio
+		CHECK (LEN (fechaMatricula) > 0),
+-- verificamos que el campo pago no acepte campos vacios
+	CONSTRAINT CHK_Matricula$pago$VerificarValorVacio
+		CHECK (LEN (pago) > 0),
+-- Verificamos que el campo pago no acepte caracterez alfabeticos
+	CONSTRAINT CHK_Matricula$pago$VerificarDatos
+		CHECK (pago NOT LIKE '%[a-z]%')
+GO
+
+---- Tabla de Facultad
+ALTER TABLE Facultad WITH CHECK
+-- Verificamos que el campo de nombre no acepte campos vacios
+	ADD CONSTRAINT CHK_Facultad$nombreFacultad$VerificarValorVacio
+		CHECK (LEN (nombreFacultad) > 0),
+-- Verificamos que el campo de nombreFacultad no acepte caracteres numericos
+	CONSTRAINT CHK_Facultad$nombreFacultad$VerificarDatos
+		CHECK (nombreFacultad NOT LIKE '%[0-9]%')
+GO
+
+-- Tabla de Direccion
+ALTER TABLE Direccion
+-- Asignamos una lista de valores por defecto al campo departamento
+	ADD CONSTRAINT DFLT_Direccion$departamento$OpcionesPorDefecto
+		CHECK (departamento IN('Ocotepeque','Copan','Lempira','Santa Barbara','Intibuca','Comayagua','Cortes','Yoro','La Paz','Atlantida','Francisco Morazon','Valle','Choluteca','El Paraiso','Olancho','Colon','Gracias A Dios')),
+-- Verificamos que el campo departamento no acepte valores vacios
+	CONSTRAINT CHK_Direccion$departamento$ValidarVacio
+		CHECK (LEN (departamento) >0),
+-- Verificamos que el campo municipio no acepte valor vacios
+	CONSTRAINT CHK_Direccion$municipio$ValidarVacio
+		CHECK (LEN (municipio) > 0),
+-- Verificamos que el campo municipio no acepte caracteres numericos
+	CONSTRAINT CHK_Direccion$municipio$ValidarDatos
+		CHECK (municipio NOT LIKE '%[0-9]%' ),
+-- Verificamos que el campo barrio no acepte campos vacios
+	CONSTRAINT CHK_Direccion$barrio$ValidarVacio
+		CHECK (LEN (barrio) > 0),
+-- Vereficamos que el campo barrio no acepte caracteres numericos
+	CONSTRAINT CHK_Direccion$barrio$ValidarDatos
+		CHECK (barrio NOT LIKE '%[0-9]%')
+GO
+
+-- Tabla Materia
+ALTER TABLE Materia
+-- Verificamos que el campo nombreMateria no acepte campos vacios
+	ADD CONSTRAINT CHK_Materio$nombreMateria$ValidarVacio
+		CHECK (LEN (nombreMateria) > 0),
+-- Verificamos que el campo nombreMateria no acepte caracteres numericos
+	CONSTRAINT CHK_Materia$nombreMateria$ValidarDatos
+		CHECK (nombreMateria NOT LIKE '%[0-9]%'),
+-- Verificamos que el campo creditosMateria no acepte campos vacios
+	CONSTRAINT CHK_Materia$creditosMateria$ValidarVacio
+		CHECK (LEN (creditosMateria) > 0),
+-- Verificamos que el campo creditosMateria sea mayor a 0
+	CONSTRAINT CHK_Materia$creditosMateria$ValidarCero
+		CHECK (creditosmateria > 0),
+-- Verificamos que el campo creditosMateria no acepte caracteres alfabeticos
+	CONSTRAINT CHK_Materia$creditosMateria$ValidarDatos
+		CHECK (creditosMateria NOT LIKE '%[a-z]%')
+GO
+
+-- Tabla Horario
+ALTER TABLE Horario
+-- Verificamos que el campo horario no acepte valores vacios
+	ADD CONSTRAINT CHK_Horario$hora$ValidarVacio
+		CHECK (LEN (hora) > 0),
+	CONSTRAINT CHK_Horario$Dias$ValoresPredeterminados
+		CHECK (Dias = 'L-J' OR Dias = 'L-V' OR Dias = 'ESP')
+GO
+
+------------------------------------------------------------------------------------------------------------------------
+--CHECK de la tabla alumno
+ALTER TABLE Alumno WITH CHECK
+	--Campo idAlumno
+	ADD CONSTRAINT CHK_Alumno$idAlumno$mascaraDeID
+	CHECK (idAlumno LIKE '[0-1][1-8][0-9][0-9][1-2][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9]'),
+
+	CONSTRAINT CHK_Alumno$idAlumno$ValidarEspacios
+	CHECK (LEN(idAlumno) > 0),
+
+	CONSTRAINT CHK_Alumno$idAlumno$ValidarDistintoDeLetras
+	CHECK (idAlumno NOT LIKE '%[a-z]%'),
+	--Campo primerNombre
+	CONSTRAINT CHK_Alumno$primerNombre$ValidarEspacios
+	CHECK (LEN(primerNombre) > 0),
+
+	CONSTRAINT CHK_Alumno$primerNombre$ValidarDistintoDeNumeros
+	CHECK (primerNombre NOT LIKE '%[0-9]%'),
+
+	--Campo segundoNombre
+	CONSTRAINT CHK_Alumno$segundoNombre$ValidarEspacios
+	CHECK (LEN(segundoNombre) > 0),
+
+	CONSTRAINT CHK_Alumno$segundoNombre$ValidarDistintoDeNumeros
+	CHECK (segundoNombre NOT LIKE '%[0-9]%'),
+
+	--Campo primerApellido
+	CONSTRAINT CHK_Alumno$primerApellido$ValidarEspacios
+	CHECK (LEN(primerApellido) > 0),
+
+	CONSTRAINT CHK_Alumno$primerApellido$ValidarDistintoDeNumeros
+	CHECK (primerApellido NOT LIKE '%[0-9]%'),
+
+	--Campo segundoApellido
+	CONSTRAINT CHK_Alumno$segundoApellido$ValidarEspacios
+	CHECK (LEN(segundoNombre) > 0),
+
+	CONSTRAINT CHK_Alumno$segundoApellido$ValidarDistintoDeNumeros
+	CHECK (segundoApellido NOT LIKE '%[0-9]%'),
+
+	--Campo idSexo
+	CONSTRAINT CHK_Alumno$idSexo$ValidarEspacio
+	CHECK (LEN(idSexo) > 0),
+
+	--Campo fechaNacimiento
+	CONSTRAINT CHK_Alumno$fechaNacimiento$ValidarFecha
+	CHECK (fechaNacimiento < GETDATE()),
+
+	CONSTRAINT CHK_Alumno$fechaNacimiento$ValidarEspacio
+	CHECK (LEN(fechaNacimiento) > 0),
+
+	CONSTRAINT CHK_Alumno$FechaNacimiento$MayorA10
+	CHECK (fechaNacimiento <= DATEADD(YEAR, -10,GETDATE())),
+
+	--Campo idDireccion
+	CONSTRAINT CHK_Alumno$idDireccion$ValidarEspacios
+	CHECK (LEN(idDireccion) > 0),
+
+	--Campo edad
+	CONSTRAINT CHK_Alumno$edad$ValidarDistintosDeNumero
+	CHECK (edad LIKE '%[0-9]%'),
+
+	CONSTRAINT CHK_Alumno$edad$ValidarEspacio
+	CHECK (LEN(edad) > 0),
+
+	--Campo telefono
+	CONSTRAINT CHK_Alumno$telefono$MascaraTelefono
+	CHECK (telefono LIKE '[3,8,9][0-9][0-9][0-9][0-9][0-9][0-9][0-9]'),
+
+	CONSTRAINT CHK_Alumno$telefono$ValidarEspacio
+	CHECK (LEN(telefono) > 0),
+
+	--Campo correoElectronico
+	CONSTRAINT CHK_Alumno$correoElectronico$ValidarEspacios
+	CHECK (LEN(correoElectronico) > 0),
+
+	--Campo estadoCivil
+	CONSTRAINT CHK_Alumno$estadoCivil$ValoresPorDefecto
+	CHECK (estadoCivil = 'Soltero' OR estadoCivil = 'Casado' OR estadoCivil = 'Divorciado'),
+
+	CONSTRAINT CHK_Alumno$estadoCivil$ValidarEspacio
+	CHECK (LEN(estadoCivil) > 0),
+
+	--Campo nacionalidad
+	CONSTRAINT CHK_Alumno$nacionalidad$ValidarEspacios
+	CHECK (LEN(nacionalidad) > 0),
+
+	CONSTRAINT CHK_Alumno$nacionalidad$ValidarDistintoDeNumeros
+	CHECK (nacionalidad NOT LIKE '%[0-9]%')
+GO
+
+
+--CHECK de la tabla Periodo
+ALTER TABLE Periodo WITH CHECK
+	--Campo periodoOrdinal
+	ADD CONSTRAINT CHK_Periodo$periodoOrdinal$ValoresEstablecidos
+	CHECK (periodoOrdinal = 'Primero' OR periodoOrdinal = 'Segundo' OR periodoOrdinal = 'Tercer'),
+
+	CONSTRAINT CHK_Periodo$periodoOrdinal$ValidarEspacios
+	CHECK (LEN(periodoOrdinal) > 0),
+
+	--Campo anio
+	CONSTRAINT CHK_Periodo$anio$AnioPorDefecto
+	DEFAULT YEAR(GETDATE()) FOR anio
+GO
+
+--CHECK de la tabla Tipos_de_Cancelacion
+ALTER TABLE Tipos_de_Cancelacion WITH CHECK
+	--Campo tipo
+	ADD CONSTRAINT CHK_TiposDeCancelaciones$tipo$ValoresDefinidos
+	CHECK (tipo = 'Clase' OR tipo = 'Periodo'),
+
+	CONSTRAINT UK_TiposCancelaciones$tipo$ValoresSinRepetir
+	UNIQUE NONCLUSTERED(tipo),
+
+	CONSTRAINT CHK_TiposDeCancelaciones$tipo$ValidarEspacios
+	CHECK (LEN(tipo) > 0)
+GO
+
+--CHECK de la tabla Titulo_Catedratico
+ALTER TABLE Titulo_Catedratico
+	--Campo nombreTitulo
+	ADD CONSTRAINT CHK_TituloCatedratico$nombreTitulo$ValidarEspacios
+	CHECK (LEN(nombreTitulo) > 0),
+
+	CONSTRAINT CHK_TituloCatedratico$nombreTitulo$ValidarDistintoDeNumero
+	CHECK (nombreTitulo NOT LIKE '%[0-9]%')
+GO
+
+----------------------------------------------------------------------------------------------------------------------------------------------------
+-----------------------------------------------------------|STORED PROCEDURE de Agregar|------------------------------------------------------------
+
+CREATE PROCEDURE SP_Facultad_ingresarFacultad
+(
+	@nombreFacultad VARCHAR(125)
+)
+AS
+	BEGIN TRY
+		INSERT INTO Facultad (nombreFacultad)
+		VALUES (@nombreFacultad)
+	END TRY
+	BEGIN CATCH
+		SELECT ERROR_NUMBER() AS 'Numero de error',
+		ERROR_MESSAGE() AS 'Mensaje error',
+		ERROR_PROCEDURE() AS 'Error de procedimiento'
+	END CATCH
+GO
+------------------------------------------------------
+CREATE PROCEDURE SP_Alumno_ingresarAlumno
+(
+	@idAlumno CHAR(13),
+	@primerNombre NVARCHAR (50),
+	@segundoNombre NVARCHAR (50), -- Este campo no es obligatorio por que no todas las personas tienen segundo nombre
+	@primerApellido NVARCHAR (50),
+	@segundoApellido NVARCHAR (50),
+	@idSexo INT, -- Dato extraido de la tabla de Genero
+	@fechaNacimiento DATE,
+	@idDireccion INT, -- Dato extraido de la tabla de direccion
+	@edad INT,
+	@telefono VARCHAR (8),
+	@correoElectronico VARCHAR (125),
+	@estadoCivil VARCHAR (8),
+	@nacionalidad NVARCHAR (50),
+	@idFacultad INT
+)
+AS
+
+	BEGIN TRY
+		INSERT INTO Alumno(idAlumno, primerNombre, segundoNombre, primerApellido, segundoApellido, idSexo, fechaNacimiento, 
+							idDireccion, edad, telefono, correoElectronico, estadoCivil, nacionalidad, idFacultad)
+		VALUES (@idAlumno, @primerNombre, @segundoNombre, @primerApellido, @segundoApellido, @idSexo, @fechaNacimiento, 
+				@idDireccion, @edad, @telefono, @correoElectronico, @estadoCivil, @nacionalidad,@idFacultad )
+	END TRY
+	BEGIN CATCH
+		SELECT ERROR_NUMBER() AS 'Numero de error',
+		ERROR_MESSAGE() AS 'Mensaje error',
+		ERROR_PROCEDURE() AS 'Error de procedimiento'
+	END CATCH
+GO
+------------------------------------------------------------------------------------------
+CREATE PROCEDURE SP_AlumnoClase_IngresarAlumnoClase
+(
+	@idHorario INT,
+	@idAlumno CHAR (13)
+)
+AS
+
+	BEGIN TRY
+		INSERT INTO Alumnos_Clase(idHorario, idAlumno)
+		VALUES (@idHorario, @idAlumno)
+	END TRY
+	BEGIN CATCH
+		SELECT ERROR_NUMBER() AS 'Numero de error',
+		ERROR_MESSAGE() AS 'Mensaje error',
+		ERROR_PROCEDURE() AS 'Error de procedimiento'
+	END CATCH
+GO
+------------------------------------------------------------------------------------------------
+CREATE PROCEDURE SP_Matricula_IngresarMatricula
+(
+	@idAlumno CHAR(13),
+	@idPeriodo INT,
+	@fechaMatricula DATE,
+	@pago BIT
+)
+AS
+
+	BEGIN TRY
+		INSERT INTO Matricula (idAlumno, idPeriodo, fechaMatricula, pago)
+		VALUES (@idAlumno, @idPeriodo, @fechaMatricula, @pago)
+	END TRY
+	BEGIN CATCH
+		SELECT ERROR_NUMBER() AS 'Numero de error',
+		ERROR_MESSAGE() AS 'Mensaje error',
+		ERROR_PROCEDURE() AS 'Error de procedimiento'
+	END CATCH
+GO
+---------------------------------------------------------------------------------------
+CREATE PROCEDURE SP_Materia_IngresarMateria
+(
+	@nombreMateria NVARCHAR (255),
+	@creditosMateria INT
+)
+AS
+
+	BEGIN TRY
+		INSERT INTO Materia (nombreMateria, creditosMateria)
+		VALUES (@nombreMateria, @creditosMateria)
+	END TRY
+	BEGIN CATCH
+		SELECT ERROR_NUMBER() AS 'Numero de error',
+		ERROR_MESSAGE() AS 'Mensaje error',
+		ERROR_PROCEDURE() AS 'Error de procedimiento'
+	END CATCH
+GO
+
+CREATE PROCEDURE SP_Docente_IngresarDocente
+(
+	@idDocente CHAR(13),
+	@primerNombre NVARCHAR (50),
+	@segundoNombre NVARCHAR (50),
+	@primerApellido NVARCHAR (50),
+	@segundoApellido NVARCHAR (50),
+	@idSexo INT,-- Dato extraido de la tabla sexo
+	@idDireccion INT, -- dato extraido de la tabla de direccíon
+	@fechaNacimiento DATE,
+	@edad INT,
+	@estadoCivil VARCHAR (8),
+	@idTitulo INT,-- dato extraido de la tabla de titulo
+	@correoElectronico VARCHAR (125),
+	@telefono VARCHAR (8),
+	@nacionalidad NVARCHAR(50)
+)
+AS
+
+	BEGIN TRY
+		INSERT INTO Docente (idDireccion,idDocente, primerNombre, segundoNombre, primerApellido, segundoApellido, idSexo,
+							 fechaNacimiento, edad, estadoCivil, idTitulo, correoElectronico, telefono, nacionalidad)
+		VALUES (@idDireccion,@idDocente, @primerNombre, @segundoNombre, @primerApellido, @segundoApellido, @idSexo,
+				@fechaNacimiento, @edad, @estadoCivil, @idTitulo, @correoElectronico, @telefono, @nacionalidad)
+	END TRY
+	BEGIN CATCH
+		SELECT ERROR_NUMBER() AS 'Numero de error',
+		ERROR_MESSAGE() AS 'Mensaje error',
+		ERROR_PROCEDURE() AS 'Error de procedimiento'
+	END CATCH
+GO
+
+--------------------------------------------------------------------------------------------------------------------------------
+CREATE PROCEDURE SP_Aula_IngresarAula
+(
+	@numeroEdificio INT
+)
+AS
+
+	BEGIN TRY
+		INSERT INTO Aula (numeroEdificio)
+		VALUES (@numeroEdificio)
+	END TRY
+	BEGIN CATCH
+		SELECT ERROR_NUMBER() AS 'Numero de error',
+		ERROR_MESSAGE() AS 'Mensaje error',
+		ERROR_PROCEDURE() AS 'Error de procedimiento'
+	END CATCH
+GO
+-------------------------------------------------------------------------------------------
+CREATE PROCEDURE SP_Horario_IngresarHorario
+(
+	@idDocente CHAR(13), --Llave foranea de la tabla de Docente
+	@Hora VARCHAR (5),
+	@idMateria INT, --Llave foranea de la tabla de Aula
+	@idAula INT,
+	@Dias VARCHAR(3)
+)
+AS
+	BEGIN TRY
+		INSERT INTO Horario (idDocente,Hora, idMateria, idAula , Dias)
+		VALUES (@idDocente,@Hora, @idMateria, @idAula, @Dias)
+	END TRY
+	BEGIN CATCH
+		SELECT ERROR_NUMBER() AS 'Numero de error',
+		ERROR_MESSAGE() AS 'Mensaje error',
+		ERROR_PROCEDURE() AS 'Error de procedimiento'
+	END CATCH
+GO
+--------------------------------------------------------------------------------------------------------
+CREATE PROCEDURE SP_Pago_IngresarPago
+(
+	@idFacultad INT, --Llave foranea de la tabla de Facultad
+	@mensualidad MONEY,
+	@idBanco INT, --Llave foranea de la tabla de Banco
+	@fechaPago DATE,
+	@estado BIT,
+	@idAlumno CHAR(13)
+)
+AS
+	BEGIN TRY
+		INSERT INTO Pago (idFacultad, mensualidad, idBanco, fechaPago, estado, idAlumno)
+		VALUES (@idFacultad, @mensualidad, @idBanco, @fechaPago, @estado, @idAlumno)
+	END TRY
+	BEGIN CATCH
+		SELECT ERROR_NUMBER() AS 'Numero de error',
+		ERROR_MESSAGE() AS 'Mensaje error',
+		ERROR_PROCEDURE() AS 'Error de procedimiento'
+	END CATCH
+GO
+--------------------------------------------------------------------------------------------------------
+CREATE PROCEDURE SP_Direccion_IngresarDireccion
+(
+	@departamento NVARCHAR (50),
+	@municipio NVARCHAR (50),
+	@barrio NVARCHAR (50)	
+)
+AS
+
+	BEGIN TRY
+		INSERT INTO Direccion (departamento, municipio, barrio)
+		VALUES (@departamento, @municipio, @barrio)
+	END TRY
+	BEGIN CATCH
+		SELECT ERROR_NUMBER() AS 'Numero de error',
+		ERROR_MESSAGE() AS 'Mensaje error',
+		ERROR_PROCEDURE() AS 'Error de procedimiento'
+	END CATCH
+GO
+--------------------------------------------------------------------------------------------------------
+CREATE PROCEDURE SP_Sexo_IngresarSexo
+(
+	@tipo CHAR (1)
+)
+AS
+
+	BEGIN TRY
+		INSERT INTO Sexo (tipo)
+		VALUES (@tipo)
+	END TRY
+	BEGIN CATCH
+		SELECT ERROR_NUMBER() AS 'Numero de error',
+		ERROR_MESSAGE() AS 'Mensaje error',
+		ERROR_PROCEDURE() AS 'Error de procedimiento'
+	END CATCH
+GO
+--------------------------------------------------------------------------------------------------------
+CREATE PROCEDURE SP_Pensum_IngresarPensum
+(
+	@idFacultad INT,
+	@idMateria INT
+)
+AS
+
+	BEGIN TRY
+		INSERT INTO Pensum (idFacultad, idMateria)
+		VALUES (@idFacultad, @idMateria)
+	END TRY
+	BEGIN CATCH
+		SELECT ERROR_NUMBER() AS 'Numero de error',
+		ERROR_MESSAGE() AS 'Mensaje error',
+		ERROR_PROCEDURE() AS 'Error de procedimiento'
+	END CATCH
+GO
+--------------------------------------------------------------------------------------------------------
+CREATE PROCEDURE SP_Calificacion_IngresarCalificacion
+(
+	@idAlumno CHAR (13),
+	@idMateria INT,  -- LLave foranea de la tabla Materia
+	@primerParcial INT,
+	@segundoParcial INT,
+	@tercerParcial INT
+)
+AS
+
+	BEGIN TRY
+		INSERT INTO Calificacion (idAlumno, idMateria, primerParcial, segundoParcial, tercerParcial)
+		VALUES (@idAlumno, @idMateria, @primerParcial, @segundoParcial, @tercerParcial)
+	END TRY
+	BEGIN CATCH
+		SELECT ERROR_NUMBER() AS 'Numero de error',
+		ERROR_MESSAGE() AS 'Mensaje error',
+		ERROR_PROCEDURE() AS 'Error de procedimiento'
+	END CATCH
+GO
+----------------------------------------------------------------------------------------------------
+CREATE PROCEDURE SP_Banco_IngresarBanco
+(
+	@NombreBanco VARCHAR(45)
+)
+AS
+	BEGIN TRY
+		INSERT INTO Banco (nombreBanco)
+		VALUES (@NombreBanco)
+	END TRY
+	BEGIN CATCH
+		SELECT ERROR_NUMBER() AS 'Numero de error',
+		ERROR_MESSAGE() AS 'Mensaje error',
+		ERROR_PROCEDURE() AS 'Error de procedimiento'
+	END CATCH
+GO
+--------------------------------------------------------------------------------------------------------
+CREATE PROCEDURE SP_Titulo_IngresarTitulo
+(
+	@NombreTitulo VARCHAR(125)
+)
+AS
+
+	BEGIN TRY
+		INSERT INTO Titulo_Catedratico (nombreTitulo)
+		VALUES (@NombreTitulo)
+	END TRY
+	BEGIN CATCH
+		SELECT ERROR_NUMBER() AS 'Numero de error',
+		ERROR_MESSAGE() AS 'Mensaje error',
+		ERROR_PROCEDURE() AS 'Error de procedimiento'
+	END CATCH
+GO
+--------------------------------------------------------------------------------------------------------
+CREATE PROCEDURE SP_Periodo_IngresarPeriodo
+(
+	@periodoOrdinal VARCHAR (25),
+	@anio INT	
+)
+AS
+	BEGIN TRY
+		INSERT INTO Periodo (periodoOrdinal, anio)
+		VALUES (@periodoOrdinal, @anio)
+	END TRY
+	BEGIN CATCH
+		SELECT ERROR_NUMBER() AS 'Numero de error',
+		ERROR_MESSAGE() AS 'Mensaje error',
+		ERROR_PROCEDURE() AS 'Error de procedimiento'
+	END CATCH
+GO
+--------------------------------------------------------------------------------------------------------
+CREATE PROCEDURE SP_TipoCancelacion_IngresarTipoCancelacion
+(
+	@tipo VARCHAR (50)
+)
+AS
+
+	BEGIN TRY
+		INSERT INTO Tipos_de_Cancelacion (tipo)
+		VALUES (@tipo)
+	END TRY
+	BEGIN CATCH
+		SELECT ERROR_NUMBER() AS 'Numero de error',
+		ERROR_MESSAGE() AS 'Mensaje error',
+		ERROR_PROCEDURE() AS 'Error de procedimiento'
+	END CATCH
+GO
+--------------------------------------------------------------------------------------------------------
+CREATE PROCEDURE SP_Cancelacion_IngresarCancelacion
+(
+	@idAlumno CHAR (13),
+	@idMateria INT,
+	@tipoDeCancelacion INT
+)
+AS
+	
+	BEGIN TRY
+		INSERT INTO Cancelacion (idAlumno, idMateria, tipoDeCancelacion)
+		VALUES (@idAlumno, @idMateria, @tipoDeCancelacion)
+	END TRY
+	BEGIN CATCH
+		SELECT ERROR_NUMBER() AS 'Numero de error',
+		ERROR_MESSAGE() AS 'Mensaje error',
+		ERROR_PROCEDURE() AS 'Error de procedimiento'
+	END CATCH
+GO
+---------------------------------------------------------------------------------------------------------
+CREATE PROCEDURE SP_MatriculaPeriodo_IngresarMatriculaPeriodo
+(
+	@idPeriodo INT,
+	@idMatricula INT
+)
+AS
+	BEGIN TRY
+		INSERT INTO Matricula_Periodo (idPeriodo, idMatricula)
+		VALUES (@idPeriodo, @idMatricula)
+	END TRY
+	BEGIN CATCH
+		SELECT ERROR_NUMBER() AS 'Numero de error',
+		ERROR_MESSAGE() AS 'Mensaje error',
+		ERROR_PROCEDURE() AS 'Error de procedimiento'
+	END CATCH
+GO
+--------------------------------------------------------------------------------------------------------
+CREATE PROCEDURE SP_Asesoria_IngresarAsesoria
+(
+	@idAlumno CHAR(13),
+	@IdMateria INT
+)
+AS
+	BEGIN TRY
+	INSERT INTO Asesoria (idAlumno, IdMateria)
+	VALUES (@idAlumno, @IdMateria)
+	END TRY
+	BEGIN CATCH
+		SELECT ERROR_NUMBER() AS 'Numero de error',
+		ERROR_MESSAGE() AS 'Mensaje error',
+		ERROR_PROCEDURE() AS 'Error de procedimiento'
+	END CATCH
+GO
+--------------------------------------------------------------------------------------------------------
+CREATE PROCEDURE SP_Prematricula_IngresarPrematricula
+(
+	@idMateria INT,
+	@idAlumno CHAR (13)
+)
+AS
+	BEGIN TRY
+		INSERT INTO Prematricula (idMateria, idAlumno)
+		VALUES (@idMateria, @idAlumno)
+	END TRY
+	BEGIN CATCH
+		SELECT ERROR_NUMBER() AS 'Numero de error',
+		ERROR_MESSAGE() AS 'Mensaje error',
+		ERROR_PROCEDURE() AS 'Error de procedimiento'
+	END CATCH
+GO
+
+----------------------------------------------------------------------------------------------------------------------------------------------------
+----------------------------------------------------------|STORED PROCEDURE de Actualizar|----------------------------------------------------------
+
+CREATE PROCEDURE SP_Facultad_UpdateFacultad
+(
+	@idFacultad INT,
+	@nombreFacultad VARCHAR(125)
+)
+AS
+	BEGIN TRY
+		UPDATE Facultad
+		SET	nombreFacultad = @nombreFacultad
+		WHERE idFacultad = @idFacultad
+	END TRY
+	BEGIN CATCH
+		SELECT ERROR_NUMBER() AS 'Numero de error',
+		ERROR_MESSAGE() AS 'Mensaje error',
+		ERROR_PROCEDURE() AS 'Error de procedimiento'
+	END CATCH
+GO
+------------------------------------------------------
+CREATE PROCEDURE SP_Alumno_UpdateAlumno
+(
+	@idAlumno CHAR(13),
+	@primerNombre NVARCHAR (50),
+	@segundoNombre NVARCHAR (50), -- Este campo no es obligatorio por que no todas las personas tienen segundo nombre
+	@primerApellido NVARCHAR (50),
+	@segundoApellido NVARCHAR (50),
+	@idSexo INT, -- Dato extraido de la tabla de Genero
+	@fechaNacimiento DATE,
+	@idDireccion INT, -- Dato extraido de la tabla de direccion
+	@edad INT,
+	@telefono VARCHAR (8),
+	@correoElectronico VARCHAR (125),
+	@estadoCivil VARCHAR (8),
+	@nacionalidad NVARCHAR (50),
+	@idFacultad INT
+)
+AS
+
+	BEGIN TRY
+		UPDATE Alumno
+		SET	primerNombre = @primerNombre,
+			segundoNombre = @segundoNombre,
+			primerApellido = @primerApellido,
+			segundoApellido = @segundoApellido,
+			idSexo = @idSexo,
+			fechaNacimiento = @fechaNacimiento,
+			idDireccion = @idDireccion,
+			edad = @edad,
+			telefono = @telefono,
+			correoElectronico = @correoElectronico,
+			estadoCivil = @estadoCivil,
+			nacionalidad = @nacionalidad,
+			idFacultad =@idFacultad
+		WHERE idAlumno LIKE @idAlumno
+	END TRY
+	BEGIN CATCH
+		SELECT ERROR_NUMBER() AS 'Numero de error',
+		ERROR_MESSAGE() AS 'Mensaje error',
+		ERROR_PROCEDURE() AS 'Error de procedimiento'
+	END CATCH
+GO
+------------------------------------------------------------------------------------------
+CREATE PROCEDURE SP_AlumnoClase_UpdateAlumnoClase
+(
+	@idAlumnoClase INT,
+	@idHorario INT,
+	@idAlumno CHAR (13)
+)
+AS
+
+	BEGIN TRY
+		UPDATE Alumnos_Clase
+		SET idHorario = @idHorario, 
+			idAlumno = @idAlumno
+		WHERE idAlumnoClase = @idAlumnoClase
+	END TRY
+	BEGIN CATCH
+		SELECT ERROR_NUMBER() AS 'Numero de error',
+		ERROR_MESSAGE() AS 'Mensaje error',
+		ERROR_PROCEDURE() AS 'Error de procedimiento'
+	END CATCH
+GO
+------------------------------------------------------------------------------------------------
+CREATE PROCEDURE SP_Matricula_UpdateMatricula
+(
+	@idMatricula INT,
+	@idAlumno CHAR(13),
+	@idPeriodo INT,
+	@fechaMatricula DATE,
+	@pago BIT
+)
+AS
+
+	BEGIN TRY
+		UPDATE Matricula
+		SET	idAlumno = @idAlumno,
+			idPeriodo = @idPeriodo,
+			fechaMatricula = @fechaMatricula,
+			pago = @pago
+		WHERE idMatricula = @idMatricula
+	END TRY
+	BEGIN CATCH
+		SELECT ERROR_NUMBER() AS 'Numero de error',
+		ERROR_MESSAGE() AS 'Mensaje error',
+		ERROR_PROCEDURE() AS 'Error de procedimiento'
+	END CATCH
+GO
+---------------------------------------------------------------------------------------
+CREATE PROCEDURE SP_Materia_UpdateMateria
+(
+	@idMateria INT,
+	@nombreMateria NVARCHAR (255),
+	@creditosMateria INT
+)
+AS
+
+	BEGIN TRY
+		UPDATE Materia
+		SET	nombreMateria = @nombreMateria,
+			creditosMateria = @creditosMateria
+		WHERE idMateria = @idMateria
+	END TRY
+	BEGIN CATCH
+		SELECT ERROR_NUMBER() AS 'Numero de error',
+		ERROR_MESSAGE() AS 'Mensaje error',
+		ERROR_PROCEDURE() AS 'Error de procedimiento'
+	END CATCH
+GO
+-----------------------------------------------------------------------------------------------------------------------------
+CREATE PROCEDURE SP_Docente_UpdateDocente
+(
+	@idDocente CHAR(13),
+	@primerNombre NVARCHAR (50),
+	@segundoNombre NVARCHAR (50),
+	@primerApellido NVARCHAR (50),
+	@segundoApellido NVARCHAR (50),
+	@idSexo INT,-- Dato extraido de la tabla sexo
+	@idDireccion INT, -- dato extraido de la tabla de direccíon
+	@fechaNacimiento DATE,
+	@edad INT,
+	@estadoCivil VARCHAR (8),
+	@idTitulo INT,-- dato extraido de la tabla de titulo
+	@correoElectronico VARCHAR (125),
+	@telefono VARCHAR (8),
+	@nacionalidad NVARCHAR(50)
+)
+AS
+
+	BEGIN TRY
+		UPDATE Docente
+		SET	primerNombre = @primerNombre,
+			segundoNombre = @segundoNombre,
+			primerApellido = @primerApellido,
+			segundoApellido = @segundoApellido,
+			idSexo = @idSexo,
+			fechaNacimiento = @fechaNacimiento,
+			idDireccion = @idDireccion,
+			edad = @edad,
+			telefono = @telefono,
+			correoElectronico = @correoElectronico,
+			estadoCivil = @estadoCivil,
+			nacionalidad = @nacionalidad,
+			idTitulo = @idTitulo
+
+		WHERE idDocente LIKE @idDocente
+	END TRY
+	BEGIN CATCH
+		SELECT ERROR_NUMBER() AS 'Numero de error',
+		ERROR_MESSAGE() AS 'Mensaje error',
+		ERROR_PROCEDURE() AS 'Error de procedimiento'
+	END CATCH
+GO
+
+--------------------------------------------------------------------------------------------------------------------------------
+CREATE PROCEDURE SP_Aula_UpdateAula
+(
+	@idAula INT,
+	@numeroEdificio INT
+)
+AS
+
+	BEGIN TRY
+		UPDATE Aula
+		SET	numeroEdificio = @numeroEdificio
+
+		WHERE idAula = @idAula
+	END TRY
+	BEGIN CATCH
+		SELECT ERROR_NUMBER() AS 'Numero de error',
+		ERROR_MESSAGE() AS 'Mensaje error',
+		ERROR_PROCEDURE() AS 'Error de procedimiento'
+	END CATCH
+GO
+-------------------------------------------------------------------------------------------
+CREATE PROCEDURE SP_Horario_UpdateHorario
+(
+	@idHorario INT,
+	@idDocente CHAR(13), --Llave foranea de la tabla de Docente
+	@Hora VARCHAR (5),
+	@idMateria INT, --Llave foranea de la tabla de Aula
+	@idAula INT,
+	@Dias CHAR(3)
+)
+AS
+	BEGIN TRY
+		UPDATE Horario
+		SET	idDocente = @idDocente,
+			Hora = @Hora,
+			idMateria = @idMateria,
+			idAula = @idAula,
+			Dias = @Dias
+
+		WHERE idHorario = @idHorario
+	END TRY
+	BEGIN CATCH
+		SELECT ERROR_NUMBER() AS 'Numero de error',
+		ERROR_MESSAGE() AS 'Mensaje error',
+		ERROR_PROCEDURE() AS 'Error de procedimiento'
+	END CATCH
+GO
+--------------------------------------------------------------------------------------------------------
+CREATE PROCEDURE SP_Pago_UpdatePago
+(
+	@idPago INT,
+	@idFacultad INT, --Llave foranea de la tabla de Facultad
+	@mensualidad MONEY,
+	@idBanco INT, --Llave foranea de la tabla de Banco
+	@fechaPago DATE,
+	@estado BIT,
+	@idAlumno CHAR(13)
+)
+AS
+	BEGIN TRY
+		UPDATE Pago
+		SET	idFacultad = @idFacultad,
+			mensualidad = @mensualidad,
+			idBanco = @idBanco,
+			fechaPago = @fechaPago,
+			estado = @estado,
+			idAlumno = @idAlumno
+
+		WHERE idPago = @idPago
+	END TRY
+	BEGIN CATCH
+		SELECT ERROR_NUMBER() AS 'Numero de error',
+		ERROR_MESSAGE() AS 'Mensaje error',
+		ERROR_PROCEDURE() AS 'Error de procedimiento'
+	END CATCH
+GO
+--------------------------------------------------------------------------------------------------------
+CREATE PROCEDURE SP_Direccion_UpdateDireccion
+(
+	@idDirreccion INT,
+	@departamento NVARCHAR (50),
+	@municipio NVARCHAR (50),
+	@barrio NVARCHAR (50)	
+)
+AS
+
+	BEGIN TRY
+		UPDATE Direccion
+		SET	departamento = @departamento,
+			municipio = @municipio,
+			barrio = @barrio
+
+		WHERE idDireccion = @idDirreccion
+	END TRY
+	BEGIN CATCH
+		SELECT ERROR_NUMBER() AS 'Numero de error',
+		ERROR_MESSAGE() AS 'Mensaje error',
+		ERROR_PROCEDURE() AS 'Error de procedimiento'
+	END CATCH
+GO
+--------------------------------------------------------------------------------------------------------
+CREATE PROCEDURE SP_Sexo_UpdateSexo
+(
+	@idSexo INT,
+	@tipo CHAR (1)
+)
+AS
+
+	BEGIN TRY
+		UPDATE Sexo
+		SET tipo = @tipo
+
+		WHERE idSexo = @idSexo
+	END TRY
+	BEGIN CATCH
+		SELECT ERROR_NUMBER() AS 'Numero de error',
+		ERROR_MESSAGE() AS 'Mensaje error',
+		ERROR_PROCEDURE() AS 'Error de procedimiento'
+	END CATCH
+GO
+--------------------------------------------------------------------------------------------------------
+CREATE PROCEDURE SP_Pensum_UpdatePensum
+(
+	@idPensum INT,
+	@idFacultad INT,
+	@idMateria INT
+)
+AS
+
+	BEGIN TRY
+		UPDATE Pensum
+		SET	idFacultad = @idFacultad,
+			idMateria = @idMateria
+
+		WHERE idPensum = @idPensum
+	END TRY
+	BEGIN CATCH
+		SELECT ERROR_NUMBER() AS 'Numero de error',
+		ERROR_MESSAGE() AS 'Mensaje error',
+		ERROR_PROCEDURE() AS 'Error de procedimiento'
+	END CATCH
+GO
+--------------------------------------------------------------------------------------------------------
+CREATE PROCEDURE SP_Calificacion_UpdateCalificacion
+(
+	@idCalificaion INT,
+	@idAlumno CHAR (13),
+	@idMateria INT,  -- LLave foranea de la tabla Materia
+	@primerParcial INT,
+	@segundoParcial INT,
+	@tercerParcial INT
+)
+AS
+
+	BEGIN TRY
+		UPDATE Calificacion
+		SET	idAlumno = @idAlumno,
+			idMateria = @idMateria,
+			primerParcial = @primerParcial,
+			segundoParcial = @segundoParcial,
+			tercerParcial = @tercerParcial
+
+		WHERE idCalificacion = @idCalificaion
+	END TRY
+	BEGIN CATCH
+		SELECT ERROR_NUMBER() AS 'Numero de error',
+		ERROR_MESSAGE() AS 'Mensaje error',
+		ERROR_PROCEDURE() AS 'Error de procedimiento'
+	END CATCH
+GO
+----------------------------------------------------------------------------------------------------
+CREATE PROCEDURE SP_Banco_UpdateBanco
+(
+	@idBanco INT,
+	@NombreBanco VARCHAR(45)
+)
+AS
+	BEGIN TRY
+		UPDATE Banco
+		SET	NombreBanco = @NombreBanco
+
+		WHERE idBanco = @idBanco
+	END TRY
+	BEGIN CATCH
+		SELECT ERROR_NUMBER() AS 'Numero de error',
+		ERROR_MESSAGE() AS 'Mensaje error',
+		ERROR_PROCEDURE() AS 'Error de procedimiento'
+	END CATCH
+GO
+--------------------------------------------------------------------------------------------------------
+CREATE PROCEDURE SP_Titulo_UpdateTitulo
+(
+	@idTitulo INT,
+	@NombreTitulo VARCHAR(125)
+)
+AS
+
+	BEGIN TRY
+		UPDATE Titulo_Catedratico
+		SET	nombreTitulo = @NombreTitulo
+
+		WHERE idTitulo = @idTitulo
+	END TRY
+	BEGIN CATCH
+		SELECT ERROR_NUMBER() AS 'Numero de error',
+		ERROR_MESSAGE() AS 'Mensaje error',
+		ERROR_PROCEDURE() AS 'Error de procedimiento'
+	END CATCH
+GO
+--------------------------------------------------------------------------------------------------------
+CREATE PROCEDURE SP_Periodo_UpdatePeriodo
+(
+	@idPeriodo INT,
+	@periodoOrdinal VARCHAR (25),
+	@anio INT	
+)
+AS
+	BEGIN TRY
+		UPDATE Periodo
+		SET	periodoOrdinal = @periodoOrdinal,
+			anio = @anio
+
+		WHERE idPeriodo = @idPeriodo
+	END TRY
+	BEGIN CATCH
+		SELECT ERROR_NUMBER() AS 'Numero de error',
+		ERROR_MESSAGE() AS 'Mensaje error',
+		ERROR_PROCEDURE() AS 'Error de procedimiento'
+	END CATCH
+GO
+--------------------------------------------------------------------------------------------------------
+CREATE PROCEDURE SP_TipoCancelacion_UpdateTipoCancelacion
+(
+	@idTipoCancelacion INT,
+	@tipo VARCHAR(50)
+)
+AS
+
+	BEGIN TRY
+		UPDATE Tipos_de_Cancelacion
+		SET	tipo = @tipo
+
+		WHERE idTipoCancelacion	= @idTipoCancelacion
+	END TRY
+	BEGIN CATCH
+		SELECT ERROR_NUMBER() AS 'Numero de error',
+		ERROR_MESSAGE() AS 'Mensaje error',
+		ERROR_PROCEDURE() AS 'Error de procedimiento'
+	END CATCH
+GO
+--------------------------------------------------------------------------------------------------------
+CREATE PROCEDURE SP_Cancelacion_UpdateCancelacion
+(
+	@idCancelacion INT,
+	@idAlumno CHAR (13),
+	@idMateria INT,
+	@tipoDeCancelacion INT
+)
+AS
+	
+	BEGIN TRY
+		UPDATE Cancelacion
+		SET	idAlumno = @idAlumno,
+			idMateria = @idMateria,
+			tipoDeCancelacion = @tipoDeCancelacion
+
+		WHERE idCancelacion = @idCancelacion
+	END TRY
+	BEGIN CATCH
+		SELECT ERROR_NUMBER() AS 'Numero de error',
+		ERROR_MESSAGE() AS 'Mensaje error',
+		ERROR_PROCEDURE() AS 'Error de procedimiento'
+	END CATCH
+GO
+---------------------------------------------------------------------------------------------------------
+CREATE PROCEDURE SP_MatriculaPeriodo_UpdateMatriculaPeriodo
+(
+	@idMatriculaPeriodo INT,
+	@idPeriodo INT,
+	@idMatricula INT
+)
+AS
+	BEGIN TRY
+		UPDATE Matricula_Periodo
+		SET	idPeriodo = @idPeriodo,
+			idMatricula = @idMatricula
+
+		WHERE idMatriculaPeriodo = @idMatriculaPeriodo
+	END TRY
+	BEGIN CATCH
+		SELECT ERROR_NUMBER() AS 'Numero de error',
+		ERROR_MESSAGE() AS 'Mensaje error',
+		ERROR_PROCEDURE() AS 'Error de procedimiento'
+	END CATCH
+GO
+--------------------------------------------------------------------------------------------------------
+CREATE PROCEDURE SP_Asesoria_UpdateAsesoria
+(
+	@idAsesoria INT,
+	@idAlumno CHAR(13),
+	@IdMateria INT
+)
+AS
+	BEGIN TRY
+		UPDATE Asesoria
+		SET	idAlumno = @idAlumno,
+			IdMateria = @IdMateria
+
+		WHERE IdAsesoria = @idAsesoria
+	END TRY
+	BEGIN CATCH
+		SELECT ERROR_NUMBER() AS 'Numero de error',
+		ERROR_MESSAGE() AS 'Mensaje error',
+		ERROR_PROCEDURE() AS 'Error de procedimiento'
+	END CATCH
+GO
+--------------------------------------------------------------------------------------------------------
+CREATE PROCEDURE SP_Prematricula_UpdatePrematricula
+(
+	@idPrematricula INT,
+	@idMateria INT,
+	@idAlumno CHAR (13)
+)
+AS
+	BEGIN TRY
+		UPDATE Prematricula
+		SET	idMateria = idMateria,
+			idAlumno = @idAlumno
+
+		WHERE idPrematricula = @idPrematricula
+	END TRY
+	BEGIN CATCH
+		SELECT ERROR_NUMBER() AS 'Numero de error',
+		ERROR_MESSAGE() AS 'Mensaje error',
+		ERROR_PROCEDURE() AS 'Error de procedimiento'
+	END CATCH
+GO
+
+----------------------------------------------------------------------------------------------------------------------------------------------------
+----------------------------------------------------------|STORED PROCEDURE de Busqueda|------------------------------------------------------------
+
+CREATE PROCEDURE SP_BusquedaAlumno
+    @IdAlumno CHAR(13)
+AS
+(
+    SELECT CONCAT(A.primerNombre,' ',A.primerApellido) AS Nombre, A.idAlumno AS Identidad, M.nombreMateria AS Materia  FROM Alumno AS A
+    INNER JOIN Alumnos_Clase AS AC
+    ON A.idAlumno LIKE AC.idAlumno
+    JOIN Horario AS H
+    ON H.idHorario = AC.idHorario 
+	JOIN Materia AS M
+	ON H.idMateria = M.idMateria
+    WHERE A.idAlumno = @idAlumno
+)
+GO
+
+CREATE PROCEDURE SP_BusquedaDocente
+    @IdDocente CHAR(13)
+AS
+(
+    SELECT CONCAT(D.primerNombre,' ',D.primerApellido) AS Nombre,D.idDocente AS Identidad, M.nombreMateria AS Materia  FROM Docente AS D
+    INNER JOIN Horario AS H
+    ON D.idDocente = H.idDocente
+	JOIN Materia AS M
+	ON M.idMateria = H.idMateria
+    WHERE D.idDocente = @IdDocente
+)
+GO
+CREATE PROCEDURE SP_HistoriaAlumnos
+	@Periodo INT,
+	@Anio INT
+AS
+    SELECT A.idAlumno AS 'IDAlumno', (A.primerNombre + ' ' + A.primerApellido) AS 'Alumno',P.periodoOrdinal AS 'Periodo', P.anio AS 'Año'
+    FROM Matricula_Periodo MP INNER JOIN Matricula M ON (MP.idMatricula = M.idMatricula)
+    JOIN Alumno A ON(A.idAlumno = M.idAlumno) JOIN Periodo AS P ON (P.idPeriodo = M.idPeriodo)
+    WHERE MP.idPeriodo = @Periodo AND P.anio = @Anio
+GO
+
+----------------------------------------------------------------------------------------------------------------------------------------------------
+-------------------------------------------------------------------|TRIGGERS|-----------------------------------------------------------------------
+
+CREATE TRIGGER TG_Pago_CambiarValorpagoEnTablaMatricula
+	ON Pago
+	AFTER INSERT
+AS
+BEGIN
+	SET NOCOUNT ON;
+	DECLARE @idAlumno CHAR(13);
+	SELECT @idAlumno = idAlumno FROM Pago
+	UPDATE Matricula
+	SET pago = 1
+	Where idAlumno LIKE @idAlumno
+END
+GO
+
+CREATE TRIGGER TG_Horaio_VerificarQueLaCaseTengaMasDe10Personas
+	ON Horario
+	AFTER INSERT
+AS
+BEGIN
+	SET NOCOUNT ON;
+
+	IF(SELECT COUNT(Asesoria.idAlumno) FROM Asesoria, inserted
+		WHERE Asesoria.IdMateria = inserted.idMateria) < 10
+	BEGIN
+		ROLLBACK TRANSACTION
+		RAISERROR('El Horario no puede ingresarse porque la clase no cuenta con los alumno sufucientes',16,1)
+	END
+	ELSE
+	BEGIN
+		PRINT 'Horario insertado'
+	END
+
+END
+GO
+
+CREATE TRIGGER TG_Materia_VerificarClaseEliminada
+	ON Materia
+	AFTER DELETE
+AS
+BEGIN
+	SET NOCOUNT ON;
+
+	IF( SELECT COUNT(Horario.idMateria) FROM Horario, deleted
+		WHERE Horario.idMateria = deleted.idMateria) >= 1
+	BEGIN
+		ROLLBACK TRANSACTION
+		RAISERROR('No se puede eliminar una clase que ya cuenta con un horario',16,1)
+	END
+	BEGIN
+		PRINT 'Materia Eliminada'
+	END
+END
+GO
+
+CREATE TRIGGER TG_Docente_VerificarDocenteEliminado
+	ON Docente
+	AFTER DELETE
+AS
+BEGIN
+	SET NOCOUNT ON;
+
+	IF( SELECT COUNT(Horario.idDocente) FROM Horario, deleted
+		WHERE Horario.idDocente = deleted.idDocente) >= 1
+	BEGIN
+		ROLLBACK TRANSACTION
+		RAISERROR ('No se puede eliminar un docente asignado a impartir una clase',16,1)
+	END
+	BEGIN
+		PRINT 'Docente Eliminado'
+	END
+END
+GO
+
+CREATE TRIGGER TG_Pensum_VerificarPensumEliminado
+	ON Pensum
+	AFTER DELETE
+AS
+BEGIN
+	SET NOCOUNT ON;
+	
+	ROLLBACK TRANSACTION
+	RAISERROR('No se puede Eliminar Pensum',16,1)
+END
+GO
+
+CREATE TRIGGER TG_Cancelacion_Cancelacion
+	ON Cancelacion
+	AFTER INSERT
+AS
+BEGIN	
+	SET NOCOUNT ON;
+
+	IF(SELECT COUNT(AC.idAlumno) FROM Alumnos_Clase AS AC, deleted AS D
+		WHERE AC.idAlumno LIKE D.idAlumno )>= 1
+	BEGIN
+		DECLARE @idAlumno CHAR(13),
+				@idMatricula INT
+		SELECT @idAlumno = inserted.idAlumno FROM inserted
+		SELECT @idMatricula = idMatricula FROM Matricula
+		WHERE idAlumno = @idAlumno
+
+		IF(SELECT tipoDeCancelacion FROM Cancelacion) lIKE 'Clase'
+		BEGIN
+			DELETE FROM Alumnos_Clase
+			WHERE Alumnos_Clase.idAlumno = @idAlumno
+		END
+		ELSE
+		BEGIN
+			DELETE FROM Matricula_Periodo
+			WHERE Matricula_Periodo.idMatricula = @idMatricula
+		END
+
+	END
+END
+GO
+
+CREATE TRIGGER TG_Matricula_IngresarEnMatriculaPeriodo
+	ON Matricula
+	AFTER INSERT
+AS
+BEGIN
+	SET NOCOUNT ON;
+
+	DECLARE @IdPeriodo INT, @idMatricula INT
+
+	SELECT @IdPeriodo = inserted.idPeriodo FROM inserted
+	SELECT @idMatricula = inserted.idMatricula FROM inserted
+
+	EXEC SP_MatriculaPeriodo_IngresarMatriculaPeriodo @idPeriodo, @idMatricula
+END
+GO
+
+CREATE TRIGGER TG_AlumnosClase_LlenarCalificacion
+    ON Alumnos_Clase
+    AFTER INSERT
+AS
+    SET NOCOUNT ON;
+    BEGIN
+        DECLARE @idAlumno CHAR(13),@idMateria INT
+        DECLARE @idHorario INT
+
+        SELECT @idHorario = inserted.idHorario FROM inserted
+        SELECT @idAlumno = inserted.idAlumno FROM inserted
+        SELECT @idMateria = idMateria FROM Horario
+        WHERE idHorario = @idHorario
+
+        EXEC SP_Calificacion_IngresarCalificacion @idAlumno, @idMateria,0,0,0
+
+    END
+GO
+
+----------------------------------------------------------------------------------------------------------------------------------------------------
+-------------------------------------------------------------------|VISTAS|-------------------------------------------------------------------------
+
+CREATE VIEW VW_Alumno
+AS
+SELECT * FROM Alumno
+GO
+
+---------------------------------------------------------------------------------------------------------------
+CREATE VIEW VW_Alumnos_Clase
+AS
+SELECT * FROM Alumnos_Clase
+GO
+
+---------------------------------------------------------------------------------------------------------------
+CREATE VIEW VW_Asesoria
+AS
+SELECT * FROM Asesoria
+GO
+
+---------------------------------------------------------------------------------------------------------------
+CREATE VIEW VW_Aula
+AS
+SELECT * FROM Aula
+GO
+
+---------------------------------------------------------------------------------------------------------------
+CREATE VIEW VW_Banco
+AS
+SELECT * FROM Banco
+GO
+
+---------------------------------------------------------------------------------------------------------------
+CREATE VIEW VW_Calificacion
+AS
+SELECT * FROM Calificacion
+GO
+
+---------------------------------------------------------------------------------------------------------------
+CREATE VIEW VW_Cancelacion
+AS
+SELECT * FROM Cancelacion
+GO
+
+---------------------------------------------------------------------------------------------------------------
+CREATE VIEW VW_Direccion
+AS
+SELECT * FROM Direccion
+GO
+
+---------------------------------------------------------------------------------------------------------------
+CREATE VIEW VW_Docente
+AS
+SELECT * FROM Docente
+GO
+
+---------------------------------------------------------------------------------------------------------------
+CREATE VIEW VW_Facultad
+AS
+SELECT * FROM Facultad
+GO
+
+---------------------------------------------------------------------------------------------------------------
+CREATE VIEW VW_Horario
+AS
+SELECT * FROM Horario
+GO
+
+---------------------------------------------------------------------------------------------------------------
+CREATE VIEW VW_Materia
+AS
+SELECT * FROM Materia
+GO
+
+---------------------------------------------------------------------------------------------------------------
+CREATE VIEW VW_Matricula
+AS
+SELECT * FROM Matricula
+GO
+
+---------------------------------------------------------------------------------------------------------------
+CREATE VIEW VW_MatriculaPeriodo
+AS
+SELECT * FROM Matricula_Periodo
+GO
+
+---------------------------------------------------------------------------------------------------------------
+CREATE VIEW VW_Pago
+AS
+SELECT * FROM Pago
+GO
+
+---------------------------------------------------------------------------------------------------------------
+CREATE VIEW VW_Pensum
+AS
+SELECT * FROM Pensum
+GO
+
+---------------------------------------------------------------------------------------------------------------
+CREATE VIEW VW_Periodo
+AS
+SELECT * FROM Periodo
+GO
+
+---------------------------------------------------------------------------------------------------------------
+CREATE VIEW VW_Sexo
+AS
+SELECT * FROM Sexo
+GO
+
+---------------------------------------------------------------------------------------------------------------
+CREATE VIEW VW_TiposdeCancelaciones
+AS
+SELECT * FROM Tipos_de_Cancelacion
+GO
+
+---------------------------------------------------------------------------------------------------------------
+CREATE VIEW VW_Titulo_Catedratico
+AS
+SELECT * FROM Titulo_Catedratico
+GO
+
+---------------------------------------------------------------------------------------------------------------
+CREATE VIEW VW_AlumnosPrimerPeriodo
+AS
+	SELECT TOP 100000000 AL.idAlumno AS 'No.Cuenta', (AL.primerNombre +' '+AL.primerApellido) AS 'Nombre',P.periodoOrdinal AS 'Periodo',P.anio AS 'Año'
+	FROM Alumno AL INNER JOIN Matricula M ON(AL.idAlumno = M.idMatricula)
+	JOIN Matricula_Periodo MP ON(MP.idMatricula = M.idMatricula)
+	JOIN Periodo P ON(P.idPeriodo = MP.idPeriodo)
+	WHERE P.periodoOrdinal = 'Primero'
+	ORDER BY AL.idAlumno DESC
+GO
+
+---------------------------------------------------------------------------------------------------------------
+CREATE VIEW VW_AlumnosSegundoPeriodo
+AS
+	SELECT TOP 100000000 AL.idAlumno AS 'No.Cuenta', (AL.primerNombre +' '+AL.primerApellido) AS 'Nombre',P.periodoOrdinal AS 'Periodo',P.anio AS 'Año'
+	FROM Alumno AL INNER JOIN Matricula M ON(AL.idAlumno = M.idMatricula)
+	JOIN Matricula_Periodo MP ON(MP.idMatricula = M.idMatricula)
+	JOIN Periodo P ON(P.idPeriodo = MP.idPeriodo)
+	WHERE P.periodoOrdinal = 'Segundo'
+	ORDER BY AL.idAlumno DESC
+GO
+
+---------------------------------------------------------------------------------------------------------------
+CREATE VIEW VW_AlumnosTercerPeriodo
+AS
+	SELECT TOP 100000000 AL.idAlumno AS 'No.Cuenta', (AL.primerNombre +' '+AL.primerApellido) AS 'Nombre',P.periodoOrdinal AS 'Periodo',P.anio AS 'Año'
+	FROM Alumno AL INNER JOIN Matricula M ON(AL.idAlumno = M.idMatricula)
+	JOIN Matricula_Periodo MP ON(MP.idMatricula = M.idMatricula)
+	JOIN Periodo P ON(P.idPeriodo = MP.idPeriodo)
+	WHERE P.periodoOrdinal = 'Tercer'
+	ORDER BY AL.idAlumno DESC
+GO
+
+---------------------------------------------------------------------------------------------------------------
+CREATE VIEW VW_AlumnosPorMaterias
+AS
+	SELECT M.nombreMateria AS 'Materia', COUNT(AC.idAlumno) AS 'Numero de alumnos'
+	FROM Materia M INNER JOIN Horario H ON(M.idMateria = H.idMateria)
+	JOIN Alumnos_Clase AC ON(Ac.idHorario = H.idHorario)
+	GROUP BY M.nombreMateria
+GO
+
+---------------------------------------------------------------------------------------------------------------
+CREATE VIEW VW_ClasesAsignadasACatedraticos
+AS
+	SELECT TOP 100000000000 D.idDireccion AS 'ID' , (D.primerNombre + ' ' + D.primerApellido) AS 'Docente', M.nombreMateria AS 'Materia'
+	FROM Docente D INNER JOIN Horario H ON(D.idDocente = H.idDocente)
+	JOIN Materia M ON(M.idMateria = H.idMateria)
+	ORDER BY 'Docente' DESC
+GO
+
+---------------------------------------------------------------------------------------------------------------
+CREATE VIEW VW_MatriculasPagadas
+AS
+	SELECT M.idMatricula AS 'Codigo', (A.primerNombre + ' ' + A.primerApellido) AS 'Alumno'
+	FROM Alumno A INNER JOIN Matricula M ON(A.idAlumno = M.idAlumno)
+	WHERE M.pago = 1
+GO
+
+---------------------------------------------------------------------------------------------------------------
+CREATE VIEW VW_MatriculasConMora
+AS
+	SELECT M.idMatricula AS 'Codigo', (A.primerNombre + ' ' + A.primerApellido) AS 'Alumno'
+	FROM Alumno A INNER JOIN Matricula M ON(A.idAlumno = M.idAlumno)
+	WHERE M.pago = 0
+GO
+
+---------------------------------------------------------------------------------------------------------------
+CREATE VIEW VW_CancelacionesDeAlumnos
+AS
+	SELECT (A.primerNombre + ' ' + A.primerApellido) AS 'Alumno', C.tipoDeCancelacion AS 'Tipo de cancelación' 
+	FROM Alumno A INNER JOIN Cancelacion C ON(A.idAlumno = C.idAlumno)
+GO
+
+---------------------------------------------------------------------------------------------------------------
+CREATE VIEW VW_ClasesPorFacultad
+AS
+	SELECT F.nombreFacultad AS 'Facultad', COUNT(M.nombreMateria) AS 'Numero de materias'
+	FROM Pensum P INNER JOIN Materia M ON(P.idMateria = M.idMateria)
+	JOIN Facultad F ON(F.idFacultad = P.idFacultad)
+	GROUP BY F.nombreFacultad 
+GO
+
+
+----------------------------------------------------------------------------------------------------------------------------------------------------
+------------------------------------------------------------|Llenado de tablas|---------------------------------------------------------------------
+
+EXECUTE SP_Titulo_IngresarTitulo 'Licenciatura Administracion de Empresas'
+GO
+EXECUTE SP_Titulo_IngresarTitulo 'Licenciatura Contaduria Publica'
+GO
+EXECUTE SP_Titulo_IngresarTitulo 'Licenciatura Diseño Grafico'
+GO
+EXECUTE SP_Titulo_IngresarTitulo 'Licenciatura Derecho'
+GO
+EXECUTE SP_Titulo_IngresarTitulo 'Licenciatura Nutricion'
+GO
+EXECUTE SP_Titulo_IngresarTitulo 'Licenciatura Educacion Fisica y Ciencias del Deporte'
+GO
+EXECUTE SP_Titulo_IngresarTitulo 'Licenciatura Psicologia'
+
+-- Ingenierias--
+GO
+EXECUTE SP_Titulo_IngresarTitulo 'Ingenrieria Civil'
+GO
+EXECUTE SP_Titulo_IngresarTitulo 'Ingenieria en Ciencias de la Computacion'
+GO
+EXECUTE SP_Titulo_IngresarTitulo 'Ingenieria Agronomica'
+GO
+EXECUTE SP_Titulo_IngresarTitulo 'Ingenieria Quimica'
+GO
+EXECUTE SP_Titulo_IngresarTitulo 'Ingenieria Industrial'
+GO
+--- Profesorados--
+EXECUTE SP_Titulo_IngresarTitulo 'Profesorado en Fisica'
+GO
+EXECUTE SP_Titulo_IngresarTitulo 'Profesorado en Matematica'
+GO
+EXECUTE SP_Titulo_IngresarTitulo 'Profesorado en Quimica'
+GO
+
+
+-- Insertar Valores en las tablas 
+INSERT INTO Direccion ( departamento, municipio, barrio)
+VALUES ( 'Comayagua',     'Taulabe',       'Los Almendros'),
+	   ( 'Comayagua',     'La Trinidad',   'Los Encuentros'),
+	   ( 'Comayagua',     'Lejamani',      'La Cruz'),
+	   ( 'Comayagua',     'El Rosario',    'Plazuelas'),
+	   ( 'Comayagua',     'Ajuterique',    'San Rafael'),
+       ( 'Comayagua',     'Siguatepeque',  'El Parnaso'),
+
+	   ( 'Atlantida',     'La Ceiba ',     'Corozal'),
+	   ( 'Atlantida',     'La Ceiba ',     'El Zapote'),
+	   ( 'Atlantida',     'La Ceiba ',     'El Esfuerzo'),
+	   ( 'Atlantida',     'El Porvenir ',  'El Playon'),
+	   ( 'Atlantida',     'La Masica ',    'La Cumbre'),
+	   ( 'Atlantida',     'San Francisco', 'Santa Ana'),
+
+	   ( 'Copan',   'Santa Rosa de Copan',  'Barrio Los Angeles'),
+	   ( 'Copan',   'Copan Ruinas',         'San Isidro'),
+	   ( 'Copan',   'Corquin',              'Samara'),
+	   ( 'Copan',   'Cucuyagua',            'La Tejera'),
+	   ( 'Copan',   'Dulce Nombre',         'Agua Buena'),
+
+	   ( 'Cortes',   'San Pedro Sula',   'Cofradia'),
+	   ( 'Cortes',   'San Pedro Sula',   'Armenta'),
+	   ( 'Cortes',   'Choloma',          'El Rancho'),
+	   ( 'Cortes',   'Omoa',             'Quebrada Seca'),
+	   ( 'Cortes',   'Potrerillos',      'Buena Vista'),
+	   ( 'Cortes',   'Puerto Cortes',    'Santa Clara'),
+	   ( 'Cortes',   'Santa Cruz',       'Las Crucitas'),
+	   ( 'Cortes',   'Santa Cruz',       'Morazan'),
+
+	   ( 'Choluteca',   'Choluteca',     'Pueblo Nuevo'),
+	   ( 'Choluteca',   'Apacilagua',    'Los Mezcales'),
+	   ( 'Choluteca',   'Duyure',        'El Horno'),
+	   ( 'Choluteca',   'El Corpus',     'Cayanini'),
+	   ( 'Choluteca',   'El Triunfo',    'El Cahuano'),
+	   ( 'Choluteca',   'Marcovia',      'Las Piletas'),
+
+	   ( 'El Paraiso',  'Yuscaran',      'El Rodeo'),
+	   ( 'El Paraiso',  'Alauca',        'La Jagua'),
+	   ( 'El Paraiso',  'Danli',         'Berceba'),
+	   ( 'El Paraiso',  'Yuscaran',      'El Rodeo'),
+	   ( 'El Paraiso',  'Yuscaran',      'El Rodeo'),
+
+	   ( 'Santa Barbara', 'Colinas',       'La union'),
+	   ( 'Santa Barbara', 'Macuelizo',     'La Cunta'),
+	   ( 'Santa Barbara', 'Nuevo Celilac', 'El Remolino'),
+	   ( 'Santa Barbara', 'Quimistan',     'Camalote'),
+       ( 'Santa Barbara', 'San Luis',      'Valle del Pinal')
+GO
+------------------------------------------------------------------------------------------------------------------------------------------
+
+
+--------- Insertamos datos en la tabla sexo
+EXECUTE SP_Sexo_IngresarSexo 'F'
+GO
+
+EXECUTE SP_Sexo_IngresarSexo 'M'
+GO
+
+--- Verificamos que los datos se hallan almacenado correctamente dentro de la tabla
+SELECT * FROM Sexo
+GO
+----------------------------------------------------------------------------------------------------------------------------
+
+---------- Insertamos datos en la tabla de banco
+EXECUTE SP_Banco_IngresarBanco 'Banco de Occidente'
+GO
+
+EXECUTE SP_Banco_IngresarBanco 'Bampais'
+GO
+
+EXECUTE SP_Banco_IngresarBanco 'Tesoreria'
+GO
+
+-- Verificamos que los datos se hallan ingresado de manera correcta dentro de la tabla
+SELECT * FROM Banco
+GO
+--------------------------------------------------------------------------------------------------------------------------
+
+-- Insertamos datos en la tabla de facultad
+EXECUTE SP_Facultad_ingresarFacultad 'Ciencias de la computacion'
+GO
+
+EXECUTE SP_Facultad_ingresarFacultad 'Industrial'
+GO
+
+EXECUTE SP_Facultad_ingresarFacultad 'Civil'
+GO
+
+EXECUTE SP_Facultad_ingresarFacultad 'Arquitectura'
+GO
+
+EXECUTE SP_Facultad_ingresarFacultad 'Ambiental'
+GO
+
+EXECUTE SP_Facultad_ingresarFacultad 'Medicina'
+GO
+
+EXECUTE SP_Facultad_ingresarFacultad 'Cirugía Dental'
+GO
+
+EXECUTE SP_Facultad_ingresarFacultad 'Enfermería'
+GO
+
+EXECUTE SP_Facultad_ingresarFacultad 'Psicología'
+GO
+
+EXECUTE SP_Facultad_ingresarFacultad 'Mercadotecnia'
+GO
+
+EXECUTE SP_Facultad_ingresarFacultad 'Gestíon Estrategica de Empresas'
+GO
+
+EXECUTE SP_Facultad_ingresarFacultad 'Finanzas'
+GO
+
+EXECUTE SP_Facultad_ingresarFacultad 'Relaciones Internacionales'
+GO
+
+EXECUTE SP_Facultad_ingresarFacultad 'Ciencias de la Comunicacion'
+GO
+
+EXECUTE SP_Facultad_ingresarFacultad 'Derecho'
+GO
+
+EXECUTE SP_Facultad_ingresarFacultad 'Teología'
+GO
+
+----------- Verificamos que los datos se hallan ingresado de manera correcta en la tabla
+SELECT * FROM Facultad
+GO
+-----------------------------------------------------------------------------------------------------------------------------
+
+-----------------------------------------------------------------------------------------------------------------------------
+---- Insertamos direcciones en la tabla de direcciones
+EXECUTE SP_Aula_IngresarAula 1
+GO
+
+EXECUTE SP_Aula_IngresarAula 2
+GO
+
+EXECUTE SP_Aula_IngresarAula 3
+GO
+
+---------- Verificamos que los datos se hallan ingresado correctamente
+SELECT * FROM Aula
+GO
+-----------------------------------------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------------------------------------------------------------
+
+---- Insertamos datos en la tabla de materias
+---- para la facultad de ingenieria industrial
+EXECUTE SP_Materia_IngresarMateria 'HISTORIA DE HONDURAS', 3
+GO
+
+EXECUTE SP_Materia_IngresarMateria 'MATEMÁTICAS', 4
+GO
+
+EXECUTE SP_Materia_IngresarMateria 'SOCIOLOGÍA', 3
+GO
+
+EXECUTE SP_Materia_IngresarMateria 'ESPAÑOL', 3
+GO
+
+EXECUTE SP_Materia_IngresarMateria 'FILOSOFÍA', 3
+GO
+
+EXECUTE SP_Materia_IngresarMateria 'ELECTIVA I', 1
+GO
+
+EXECUTE SP_Materia_IngresarMateria 'ESTADÍSTICA I', 4
+GO
+
+EXECUTE SP_Materia_IngresarMateria 'PRE-CALCULO', 4
+GO
+
+EXECUTE SP_Materia_IngresarMateria 'EXPRESIÓN ORAL Y ESCRITA', 3
+GO
+
+EXECUTE SP_Materia_IngresarMateria 'EL HOMBRE FRENTE A LA VIDA', 3
+GO
+
+EXECUTE SP_Materia_IngresarMateria 'DIBUJO I', 3
+GO
+
+EXECUTE SP_Materia_IngresarMateria 'ESTADÍSTICA II', 4
+GO
+
+EXECUTE SP_Materia_IngresarMateria 'CALCULO I', 4
+GO
+
+EXECUTE SP_Materia_IngresarMateria 'ALGEBRA LINEAL', 3
+GO
+
+EXECUTE SP_Materia_IngresarMateria 'ADMINISTRACIÓN I', 3
+GO
+
+EXECUTE SP_Materia_IngresarMateria 'DISEÑO INDUSTRIAL ASISTIDO POR COMPUTADORA', 3
+GO
+
+EXECUTE SP_Materia_IngresarMateria 'MÉTODOS Y TÉCNICAS DE INVESTIGACIÓN', 3
+GO
+
+EXECUTE SP_Materia_IngresarMateria 'CALCULO II', 4
+GO
+
+EXECUTE SP_Materia_IngresarMateria 'FÍSICA I', 3
+GO
+
+EXECUTE SP_Materia_IngresarMateria 'QUÍMICA I', 5
+GO
+
+EXECUTE SP_Materia_IngresarMateria 'INVESTIGACIÓN DE OPERACIONES I', 4
+GO
+
+EXECUTE SP_Materia_IngresarMateria 'ECUACIONES DIFERENCIALES', 3
+GO
+
+EXECUTE SP_Materia_IngresarMateria 'CONTABILIDAD I', 3
+GO
+
+EXECUTE SP_Materia_IngresarMateria 'FÍSICA II', 3
+GO
+
+EXECUTE SP_Materia_IngresarMateria 'ELECTIVA II', 1
+GO
+
+EXECUTE SP_Materia_IngresarMateria 'INVESTIGACIÓN DE OPERACIONES II', 3
+GO
+
+EXECUTE SP_Materia_IngresarMateria 'INGENIERÍA DE MÉTODOS I', 3
+GO
+
+EXECUTE SP_Materia_IngresarMateria 'PRODUCCIÓN LIMPIA Y ENERGÍAS ALTERNATIVAS', 3
+GO
+
+EXECUTE SP_Materia_IngresarMateria 'CONTABILIDAD DE COSTOS PARA INGENIERÍA INDUSTRIAL', 3
+GO
+
+EXECUTE SP_Materia_IngresarMateria 'ADMINISTRACIÓN DE LA PRODUCCIÓN Y LAS OPERACIONES', 3
+GO
+
+EXECUTE SP_Materia_IngresarMateria 'INGENIERÍA DE MÉTODOS II', 3
+GO
+
+EXECUTE SP_Materia_IngresarMateria 'INSTALACIONES ELÉCTRICAS', 3
+GO
+
+EXECUTE SP_Materia_IngresarMateria 'ÉTICA PROFESIONAL', 3
+GO
+
+EXECUTE SP_Materia_IngresarMateria 'MECÁNICA DE SÓLIDOS I', 3
+GO
+
+EXECUTE SP_Materia_IngresarMateria 'ERGONOMÍA', 3
+GO
+
+EXECUTE SP_Materia_IngresarMateria 'ALGORITMOS Y LENGUAJES DE PROGRAMACIÓN', 3
+GO
+
+EXECUTE SP_Materia_IngresarMateria 'MERCADOTECNIA I', 3
+GO
+
+EXECUTE SP_Materia_IngresarMateria 'GESTIÓN DE RECURSO HUMANO', 3
+GO
+
+EXECUTE SP_Materia_IngresarMateria 'CIENCIA DE LOS MATERIALES', 4
+GO
+
+EXECUTE SP_Materia_IngresarMateria 'SIMULACIÓN DE PROCESOS', 3
+GO
+
+EXECUTE SP_Materia_IngresarMateria 'DISEÑO DE PLANTA Y MANEJO DE MATERIALES', 3
+GO
+
+EXECUTE SP_Materia_IngresarMateria 'MECÁNICA DE FLUIDOS APLICADA', 3
+GO
+
+EXECUTE SP_Materia_IngresarMateria 'GESTIÓN DE LA CALIDAD TOTAL', 3
+GO
+
+EXECUTE SP_Materia_IngresarMateria 'AMINISTRACIÓN FINANCIERA', 3
+GO
+
+EXECUTE SP_Materia_IngresarMateria 'LOGÍSTICA Y CADENA DE SUMINISTRO', 3
+GO
+
+EXECUTE SP_Materia_IngresarMateria 'INGENIERÍA EN SISTEMAS DE PRODUCCIÓN I', 3
+GO
+
+EXECUTE SP_Materia_IngresarMateria 'DOCTRINA SOCIAL DE LA IGLESIA', 3
+GO
+
+EXECUTE SP_Materia_IngresarMateria 'CONTROL ESTADÍSTICO DE LA CALIDAD', 3
+GO
+
+EXECUTE SP_Materia_IngresarMateria 'INGENIERÍA ECONÓMICA', 3
+GO
+
+EXECUTE SP_Materia_IngresarMateria 'FORMULACIÓN Y EVALUACIÓN DE PROYECTOS', 3
+GO
+
+EXECUTE SP_Materia_IngresarMateria 'INGENIERÍA EN SISTEMAS DE PRODUCCIÓN II', 3
+GO
+
+EXECUTE SP_Materia_IngresarMateria 'SISTEMAS AUTOMATIZADOS', 4
+GO 
+
+EXECUTE SP_Materia_IngresarMateria 'PLANEACIÓN Y DISEÑO DE UN MODELO DE CALIDAD', 3
+GO
+
+EXECUTE SP_Materia_IngresarMateria 'LESGILACIÓN EMPRESARIAL', 3
+GO
+
+EXECUTE SP_Materia_IngresarMateria 'ANÁLISIS Y ESTRATEGIA DE LA INDUSTRIA', 3
+GO
+
+EXECUTE SP_Materia_IngresarMateria 'INGENIERÍA EN SISTEMAS DE MANTENIMIENTO INDUSTRIAL', 4
+GO
+
+EXECUTE SP_Materia_IngresarMateria 'SEGURIDAD E HIGIENE EN EL TRABAJO', 3
+GO
+
+EXECUTE SP_Materia_IngresarMateria 'APLICACIÓN DE SISTEMAS DE INTEGRADOS DE CALIDAD', 3
+GO
+
+EXECUTE SP_Materia_IngresarMateria 'ELECTIVA III', 1
+GO
+
+EXECUTE SP_Materia_IngresarMateria 'PRÁCTICA PROFESIONAL', 1
+GO
+-----------------------------------------------------------------------------------------------------------------------------
+-- Insertamos las clases para la carrera de ingenieria en sistemas
+
+EXECUTE SP_Materia_IngresarMateria 'INTRODUCCIÓN A LAS CIENCIAS DE LA COMPUTACIÓN', 3
+GO
+
+EXECUTE SP_Materia_IngresarMateria 'FUNDAMENTOS Y LÓGICA DE PROGRAMACIÓN', 4
+GO
+
+EXECUTE SP_Materia_IngresarMateria 'PROGRAMACIÓN ESTRUCTURADA I', 3
+GO
+
+EXECUTE SP_Materia_IngresarMateria 'ESTRUCTURAS DISCRETAS', 3
+GO
+
+EXECUTE SP_Materia_IngresarMateria 'PROGRAMACIÓN ESTRUCTURADA II', 3
+GO
+
+EXECUTE SP_Materia_IngresarMateria 'BASES DE DATOS I', 3
+GO
+
+EXECUTE SP_Materia_IngresarMateria 'PROGRAMACIÓN EN ENTORNOS DE DESARROLLO VISUAL', 3
+GO
+
+EXECUTE SP_Materia_IngresarMateria 'PRINCIPIOS DE ELETRÓNICA', 3
+GO
+
+EXECUTE SP_Materia_IngresarMateria 'BASES DE DATOS II', 3	
+GO
+
+EXECUTE SP_Materia_IngresarMateria 'ANÁLISIS Y DISEÑO DE SISTEMAS', 3
+GO
+
+EXECUTE SP_Materia_IngresarMateria 'REDES I', 4
+GO
+
+EXECUTE SP_Materia_IngresarMateria 'CIRCUITOS LÓGICOS', 3
+GO
+
+EXECUTE SP_Materia_IngresarMateria 'BASES DE DATOS MULTIDIMENSIONAL', 3
+GO
+
+EXECUTE SP_Materia_IngresarMateria 'PROGRAMACIÓN MULTIPLATAFORMA', 3
+GO
+
+EXECUTE SP_Materia_IngresarMateria 'DESARROLLO DE SOFTWARE', 4
+GO
+
+EXECUTE SP_Materia_IngresarMateria 'REDES II', 4
+GO
+
+EXECUTE SP_Materia_IngresarMateria 'SISTEMAS INTELIGENTES PARA NEGOCIOS', 3
+GO
+
+EXECUTE SP_Materia_IngresarMateria 'IMPLEMENTACIÓN DE SISTEMAS DE SOFTWARE', 3
+GO
+
+EXECUTE SP_Materia_IngresarMateria 'SISTEMAS OPERATIVOS I', 3
+GO
+
+EXECUTE SP_Materia_IngresarMateria 'MICROCONTROLADORES', 3
+GO
+
+EXECUTE SP_Materia_IngresarMateria 'DESARROLLO DE PORTALES WEB I', 3
+GO
+
+EXECUTE SP_Materia_IngresarMateria 'PROGRAMACIÓN MOVIL I', 3
+GO
+
+EXECUTE SP_Materia_IngresarMateria 'SISTEMAS OPERATIVOS II', 3
+GO
+
+EXECUTE SP_Materia_IngresarMateria 'SEMINARIO DE HARDWARE Y ELECTRICIDAD', 3
+GO
+
+EXECUTE SP_Materia_IngresarMateria 'DESARROLLO DE PORTALES WEB II', 3 
+GO
+
+EXECUTE SP_Materia_IngresarMateria 'PROGRAMACIÓN MOVIL II', 3
+GO
+
+EXECUTE SP_Materia_IngresarMateria 'GESTIÓN Y ESTANDARES DE TECNOLOGÍA DE INFORMACIÓN', 3
+GO
+
+EXECUTE SP_Materia_IngresarMateria 'NEGOCIOS WEB', 3
+GO
+
+EXECUTE SP_Materia_IngresarMateria 'PROGRAMACIÓN DE NEGOCIOS', 3
+GO
+
+EXECUTE SP_Materia_IngresarMateria 'SEGURIDAD INFORMÁTICA Y GESTIÓN DE RIESGO', 3
+GO
+
+EXECUTE SP_Materia_IngresarMateria 'ADMINISTRACIÓN DE CENTROS DE COMPUTO', 3
+GO
+
+EXECUTE SP_Materia_IngresarMateria 'SEMINARIO-TALLER DE SOFTWARE', 3
+GO
+
+EXECUTE SP_Materia_IngresarMateria 'GESTIÓN DE PROYECTOS INFORMÁTICOS', 3
+GO
+
+EXECUTE SP_Materia_IngresarMateria 'BIG DATA', 3
+GO
+
+EXECUTE SP_Materia_IngresarMateria 'AUDITORÍA DE SISTEMAS DE INFORMACIÓN', 3
+GO
+
+EXECUTE SP_Materia_IngresarMateria 'PRÁCTICA PROFESIONAL SUPERVISADA', 1
+GO
+----------------------------------------------------------------------------------------------------------------------------
+-- Insertamos las clases para la carrera de civil
+
+EXECUTE SP_Materia_IngresarMateria 'DIBUJO TÉCNICO', 3
+GO
+
+EXECUTE SP_Materia_IngresarMateria 'ESTÁTICA', 3
+GO
+
+EXECUTE SP_Materia_IngresarMateria 'DINÁMICA', 3
+GO
+
+EXECUTE SP_Materia_IngresarMateria 'TOPOGRAFÍA', 3
+GO
+
+EXECUTE SP_Materia_IngresarMateria 'MECÁNICA DE FLUIDOS', 3
+GO
+
+EXECUTE SP_Materia_IngresarMateria 'TOPOGRAFÍA APLICADA', 3
+GO
+
+EXECUTE SP_Materia_IngresarMateria 'MATERIALES Y PROCESOS DE CONSTRUCCIÓN', 4
+GO
+
+EXECUTE SP_Materia_IngresarMateria 'ANÁLISIS ESTRUCTURAL I', 3
+GO
+
+EXECUTE SP_Materia_IngresarMateria 'HIDROLOGÍA', 4
+GO
+
+EXECUTE SP_Materia_IngresarMateria 'MÉTODOS Y MAQUINARIA DE CONSTRUCCIÓN', 3
+GO
+
+EXECUTE SP_Materia_IngresarMateria 'ANÁLISIS ESTRUCTURAL II', 3
+GO
+
+EXECUTE SP_Materia_IngresarMateria 'INGENIERÍA HIDRÁULICA Y DE RIEGOS', 4
+GO
+
+EXECUTE SP_Materia_IngresarMateria 'MECÁNICA DE SÓLIDOS II', 3
+GO
+
+EXECUTE SP_Materia_IngresarMateria 'ANÁLISIS ESTRUCTURAL III', 3
+GO
+
+EXECUTE SP_Materia_IngresarMateria 'MECÁNICA DE SUELOS', 3
+GO
+
+EXECUTE SP_Materia_IngresarMateria 'SEMINARIO DE INVESTIGACIÓN', 3
+GO
+
+EXECUTE SP_Materia_IngresarMateria 'CONCRETO', 4
+GO
+
+EXECUTE SP_Materia_IngresarMateria 'GEOTECNIA', 3
+GO
+
+EXECUTE SP_Materia_IngresarMateria 'INGENIERÍA SANITARIA I', 4
+GO
+
+EXECUTE SP_Materia_IngresarMateria 'DISEÑO DE ESTRUCTURAS DE CONCRETO', 4
+GO
+
+EXECUTE SP_Materia_IngresarMateria 'DISEÑO DE CIMENTACIONES', 4
+GO
+
+EXECUTE SP_Materia_IngresarMateria 'DISEÑO DE CARRETERAS Y CAMINOS', 3
+GO
+
+EXECUTE SP_Materia_IngresarMateria 'ASPECTOS LEGALES DE LA INGENIERÍA CIVIL', 3
+GO
+
+EXECUTE SP_Materia_IngresarMateria 'DISEÑO DE PAVIMENTOS', 4
+GO
+
+EXECUTE SP_Materia_IngresarMateria 'DISEÑO DE ESTRUCTURAS METÁLICAS', 3
+GO
+
+EXECUTE SP_Materia_IngresarMateria 'INGENIERÍA SANITARIA II', 3
+GO
+
+EXECUTE SP_Materia_IngresarMateria 'COSTOS Y PRESUPUESTOS DE OBRAS', 4
+GO
+
+EXECUTE SP_Materia_IngresarMateria 'OBRAS DE MITIGACIÓN', 4
+GO
+
+EXECUTE SP_Materia_IngresarMateria 'DISEÑO DE INSTALACIONES ELÉCTRICAS', 3
+GO
+
+EXECUTE SP_Materia_IngresarMateria 'DISEÑO DE OBRAS CIVILES ASISTIDO POR COMPUTADORA', 4
+GO
+
+EXECUTE SP_Materia_IngresarMateria 'FORMULACIÓN Y EVALUACIÓN DE PROYECTOS DE CONSTRUCCIÓN', 3
+GO
+
+------------------------------------------------------------------------------------------------------------------------------
+-- Insertamos las clases para la carrera de arquitectura
+
+EXECUTE SP_Materia_IngresarMateria 'INTRODUCCIÓN AL DISEÑO', 3
+GO
+
+EXECUTE SP_Materia_IngresarMateria 'TEORÍA DE LA ARQUITECTURA I', 3
+GO
+
+EXECUTE SP_Materia_IngresarMateria 'TEORÍA DE LA ARQUITECTURA II', 3
+GO
+
+EXECUTE SP_Materia_IngresarMateria 'GEOMETRÍA DESCRIPTIVA I', 4
+GO
+
+EXECUTE SP_Materia_IngresarMateria 'DISEÑO BÁSICO I', 4
+GO
+
+EXECUTE SP_Materia_IngresarMateria 'DIBUJO APLICADO A LA ARQUITECTURA', 4
+GO
+
+EXECUTE SP_Materia_IngresarMateria 'GEOMETRÍA DESCRIPTIVA II', 3
+GO
+
+EXECUTE SP_Materia_IngresarMateria 'RESISTENCIA DE MATERIALES', 3
+GO
+
+EXECUTE SP_Materia_IngresarMateria 'DISEÑO BÁSICO II', 4
+GO
+
+EXECUTE SP_Materia_IngresarMateria 'EXPRESIÓN GRÁFICA I', 4
+GO
+
+EXECUTE SP_Materia_IngresarMateria 'DISEÑO BÁSICO III', 4
+GO
+
+EXECUTE SP_Materia_IngresarMateria 'EXPRESIÓN GRÁFICA II', 4
+GO
+
+EXECUTE SP_Materia_IngresarMateria 'MATERIALES DE CONSTRUCCIÓN', 3
+GO
+
+EXECUTE SP_Materia_IngresarMateria 'HISTORIA DE LA ARQUITECTURA I', 4
+GO
+
+EXECUTE SP_Materia_IngresarMateria 'DISEÑO INTERMEDIO I', 4
+GO
+
+EXECUTE SP_Materia_IngresarMateria 'HISTORIA DE LA ARQUITECTURA II', 4
+GO
+
+EXECUTE SP_Materia_IngresarMateria 'EXPRESIÓN GRÁFICA III', 4
+GO
+
+EXECUTE SP_Materia_IngresarMateria 'DISEÑO INTERMEDIO II', 4
+GO
+
+EXECUTE SP_Materia_IngresarMateria 'INSTALACIÓN DE EDIFICIOS I', 3
+GO
+
+EXECUTE SP_Materia_IngresarMateria 'MONUMENTOS RELIGIOSOS', 3
+GO
+
+EXECUTE SP_Materia_IngresarMateria 'HISTORIA DE LA ARQUITECTURA III', 4
+GO
+
+EXECUTE SP_Materia_IngresarMateria 'DISEÑO INTERMEDIO III', 4
+GO
+
+EXECUTE SP_Materia_IngresarMateria 'INSTALACIÓN DE EDIFICIOS II', 3
+GO
+
+EXECUTE SP_Materia_IngresarMateria 'TALLER CONSTRUCTIVO I', 4
+GO
+
+EXECUTE SP_Materia_IngresarMateria 'HISTORIA DE LA ARQUITECTURA IV', 4
+GO
+
+EXECUTE SP_Materia_IngresarMateria 'DISEÑO AVANZADO I', 4
+GO
+
+EXECUTE SP_Materia_IngresarMateria 'INSTALACIÓN DE EDIFICIOS III', 4
+GO
+
+EXECUTE SP_Materia_IngresarMateria 'TALLER CONSTRUCTIVO II', 3
+GO
+
+EXECUTE SP_Materia_IngresarMateria 'ADMINISTRACIÓN DE OBRAS I', 3
+GO
+
+EXECUTE SP_Materia_IngresarMateria 'DISEÑO AVANZADO II', 4
+GO
+
+EXECUTE SP_Materia_IngresarMateria 'URBANISMO', 3
+GO
+
+EXECUTE SP_Materia_IngresarMateria 'TALLER CONSTRUCTIVO III', 4
+GO
+
+EXECUTE SP_Materia_IngresarMateria 'ADMINISTRACIÓN DE OBRAS II', 3
+GO
+
+EXECUTE SP_Materia_IngresarMateria 'DISEÑO AVANZADO III', 4
+GO
+
+EXECUTE SP_Materia_IngresarMateria 'URBANISMO Y AMBIENTE I', 4
+GO
+
+EXECUTE SP_Materia_IngresarMateria 'ADMINISTRACIÓN DE OBRAS III', 3
+GO
+
+EXECUTE SP_Materia_IngresarMateria 'SEMINARIO DE DISEÑO AVANZADO', 3
+GO
+
+EXECUTE SP_Materia_IngresarMateria 'URBANISMO Y AMBIENTE II', 4
+GO
+
+EXECUTE SP_Materia_IngresarMateria 'PAISAJISMO', 3
+GO
+-----------------------------------------------------------------------------------------------------------------------------
+-- Insertamos las clases para la carrera de ambiental
+EXECUTE SP_Materia_IngresarMateria 'INFORMÁTICA I', 3
+GO
+
+EXECUTE SP_Materia_IngresarMateria 'ZOOLOGÍA Y BOTÁNICA', 3
+GO
+
+EXECUTE SP_Materia_IngresarMateria 'QUÍMICA ORGÁNICA', 5
+GO
+
+EXECUTE SP_Materia_IngresarMateria 'FUNDAMENTOS DE INGENIERÍA AMBIENTAL', 3
+GO
+
+EXECUTE SP_Materia_IngresarMateria 'MICROBIOLOGÍA APLICADA', 3
+GO
+
+EXECUTE SP_Materia_IngresarMateria 'QUÍMICA APLICADA', 3
+GO
+
+EXECUTE SP_Materia_IngresarMateria 'CALIDAD DEL AGUA', 3
+GO
+
+EXECUTE SP_Materia_IngresarMateria 'ECOLOGÍA', 3
+GO
+
+EXECUTE SP_Materia_IngresarMateria 'MANEJO DE RECURSOS NATURALES', 3
+GO
+
+EXECUTE SP_Materia_IngresarMateria 'CALIDAD DEL SUELO', 3
+GO
+
+EXECUTE SP_Materia_IngresarMateria 'DESECHOS SÓLIDOS', 3
+GO
+
+EXECUTE SP_Materia_IngresarMateria 'ECONOMÍA AMBIENTAL', 3
+GO
+
+EXECUTE SP_Materia_IngresarMateria 'LEGISLACÍON AMBIENTAL', 3
+GO
+
+EXECUTE SP_Materia_IngresarMateria 'INFORMATICA APLICADA A LA INGENIERIA AMBIENTAL', 3
+GO
+
+EXECUTE SP_Materia_IngresarMateria 'MANEJO DE CUENCAS', 3
+GO
+
+EXECUTE SP_Materia_IngresarMateria 'CALIDAD DEL AIRE', 3
+GO
+
+EXECUTE SP_Materia_IngresarMateria 'HIDRÁULICA', 3
+GO
+
+EXECUTE SP_Materia_IngresarMateria 'ENERGÍA', 3
+GO
+
+EXECUTE SP_Materia_IngresarMateria 'GESTIÓN DEL RIESGO Y VULNERABILIDAD', 3 
+GO
+
+EXECUTE SP_Materia_IngresarMateria 'HIDROGEOLOGÍA', 3
+GO
+
+EXECUTE SP_Materia_IngresarMateria 'PLANIFICACÍON AMBIENTAL', 3
+GO
+
+EXECUTE SP_Materia_IngresarMateria 'INGENIERÍA SANITARIA III', 3
+GO
+
+EXECUTE SP_Materia_IngresarMateria 'CONTAMINANTES I', 3
+GO
+
+EXECUTE SP_Materia_IngresarMateria 'EVALUACIÓN DEL IMPACTO AMBIENTAL I', 3
+GO
+
+EXECUTE SP_Materia_IngresarMateria 'INVESTIGACIÓN AMBIENTAL', 3
+GO
+
+EXECUTE SP_Materia_IngresarMateria 'GESTIÓN URBANA Y RURAL', 3
+GO
+
+EXECUTE SP_Materia_IngresarMateria 'GESTIÓN DE PROYECTOS DE COOPERACIÓN', 3
+GO
+
+EXECUTE SP_Materia_IngresarMateria 'CONTAMINANTES II', 3
+GO
+
+EXECUTE SP_Materia_IngresarMateria 'EVALUACIÓN DE IMPACTO AMBIENTAL II', 3
+GO
+---------------------------------------------------------------------------------------------------------------------------
+------- Insertamos las clases para la carrera de mercadotecnia
+
+EXECUTE SP_Materia_IngresarMateria 'PSICOLOGÍA I', 3
+GO
+
+EXECUTE SP_Materia_IngresarMateria 'CONTABILIDAD II', 3
+GO
+
+EXECUTE SP_Materia_IngresarMateria 'CIENCIA Y TECNOLOGÍA', 3
+GO
+
+EXECUTE SP_Materia_IngresarMateria 'CONTABILIDAD ADMINISTRATIVA I', 3
+GO
+
+EXECUTE SP_Materia_IngresarMateria 'INVESTIGACIÓN DE MERCADOS I', 3
+GO
+
+EXECUTE SP_Materia_IngresarMateria 'LEGISLACIÓN EMPRESARIAL', 3
+GO
+
+EXECUTE SP_Materia_IngresarMateria 'ADMINISTRACIÓN DE RECURSOS HUMANOS', 3
+GO
+
+EXECUTE SP_Materia_IngresarMateria 'MERCADOTECNIA II', 3
+GO
+
+EXECUTE SP_Materia_IngresarMateria 'MICROECONOMÍA', 3
+GO
+
+EXECUTE SP_Materia_IngresarMateria 'MATEMÁTICA FINANCIERA', 3
+GO
+
+EXECUTE SP_Materia_IngresarMateria 'INVESTIGACIÓN DE MERCADOS II', 3
+GO
+
+EXECUTE SP_Materia_IngresarMateria 'RELACIONES DE TRABAJO EN LA EMPRESA', 3
+GO
+
+EXECUTE SP_Materia_IngresarMateria 'COMPORTAMIENTO DEL CONSUMIDOR', 3
+GO
+
+EXECUTE SP_Materia_IngresarMateria 'MACROECONOMÍA', 3
+GO
+
+EXECUTE SP_Materia_IngresarMateria 'ADMINISTRACIÓN FINANCIERA I', 3
+GO
+
+EXECUTE SP_Materia_IngresarMateria 'VENTAS', 3
+GO
+
+EXECUTE SP_Materia_IngresarMateria 'COMPORTAMIENTO HUMANO Y DESARROLLO ORGANIZACIONAL', 3
+GO
+
+EXECUTE SP_Materia_IngresarMateria 'PUBLICIDAD I', 3
+GO
+
+EXECUTE SP_Materia_IngresarMateria 'INVESTIGACIÓN DE OPERACIONES APLICADAS A LAADMINISTRACIÓN', 3
+GO
+
+EXECUTE SP_Materia_IngresarMateria 'PROMOCIÓN DE VENTAS', 3
+GO
+
+EXECUTE SP_Materia_IngresarMateria 'POLÍTICAS DE MERCADOTECNIA', 3
+GO
+
+EXECUTE SP_Materia_IngresarMateria 'PUBLICIDAD II', 3
+GO
+
+EXECUTE SP_Materia_IngresarMateria 'ANÁLISIS DE PRECIOS', 3
+GO
+
+EXECUTE SP_Materia_IngresarMateria 'PLANEACIÓN ESTRATÉGICA', 3
+GO
+
+EXECUTE SP_Materia_IngresarMateria 'MERCADOTECNIA SOCIAL', 3
+GO
+
+EXECUTE SP_Materia_IngresarMateria 'MERCADOTECNIA DE SERVICIOS', 3
+GO
+
+EXECUTE SP_Materia_IngresarMateria 'NEGOCIACIÓN INTERNACIONAL Y DESARROLLO DE FRANQUICIAS', 3
+GO
+
+EXECUTE SP_Materia_IngresarMateria 'DISTRIBUCIÓN Y LOGÍSTICA', 3
+GO
+
+EXECUTE SP_Materia_IngresarMateria 'MERCADOTECNIA TURÍSTICA', 3
+GO
+
+EXECUTE SP_Materia_IngresarMateria 'MERCADOTECNIA PARA INSTITUCIONES FINANCIERAS', 3
+GO
+
+EXECUTE SP_Materia_IngresarMateria 'COMERCIO INTERNACIONAL', 3
+GO
+
+EXECUTE SP_Materia_IngresarMateria 'DESARROLLO DE PRODUCTOS', 3
+GO
+
+EXECUTE SP_Materia_IngresarMateria 'DISEÑO PUBLICITARIO', 3
+GO
+
+EXECUTE SP_Materia_IngresarMateria 'MERCADOTECNIA INTERNACIONAL', 3
+GO
+
+EXECUTE SP_Materia_IngresarMateria 'SEMINARIO DE MERCADOTECNIA', 3
+GO
+
+EXECUTE SP_Materia_IngresarMateria 'NEGOCIOS ELECTRÓNICOS', 3
+GO
+
+EXECUTE SP_Materia_IngresarMateria 'FISICA MEDICA', 3
+GO
+EXECUTE SP_Materia_IngresarMateria 'QUIMICA ORGANICA', 5
+GO
+
+
+--  Periodo III ----
+EXECUTE SP_Materia_IngresarMateria 'ETICA MEDICA', 3
+GO
+EXECUTE SP_Materia_IngresarMateria 'BIOESTADISTICA', 3
+GO
+EXECUTE SP_Materia_IngresarMateria 'HISTORIA DE LA MEDICINA', 3
+GO
+EXECUTE SP_Materia_IngresarMateria 'BIOQUIMICA', 6
+GO
+
+--  Periodo IV ----
+EXECUTE SP_Materia_IngresarMateria 'ECOLOGIA', 3
+GO
+EXECUTE SP_Materia_IngresarMateria 'EMBRIOLOGIA', 6
+GO
+EXECUTE SP_Materia_IngresarMateria 'GENETICA', 5
+GO
+EXECUTE SP_Materia_IngresarMateria 'PSICOLOGIA MEDICA', 3
+GO
+
+--  Periodo V ----
+EXECUTE SP_Materia_IngresarMateria 'HISTOLOGIA', 6
+GO
+EXECUTE SP_Materia_IngresarMateria 'ANATOMIA I', 7
+GO
+EXECUTE SP_Materia_IngresarMateria 'NEUROANATOMIA I', 6
+GO
+
+
+--  Periodo VI ----
+EXECUTE SP_Materia_IngresarMateria 'ANATOMIA II', 7
+GO
+EXECUTE SP_Materia_IngresarMateria 'INMUNOLOGIA', 4
+GO
+EXECUTE SP_Materia_IngresarMateria 'NEUROANATOMIA II', 6
+GO
+EXECUTE SP_Materia_IngresarMateria 'INTRODUCCION A LA SALUD PUBLICA', 5
+GO
+
+
+--  Periodo VII ----
+EXECUTE SP_Materia_IngresarMateria 'PLANEACION Y DISEÑO DE UN MODELO DE CALIDAD', 3
+GO
+EXECUTE SP_Materia_IngresarMateria 'FISIOLOGIA I', 6
+GO
+EXECUTE SP_Materia_IngresarMateria 'MICROBIOLOGIA', 7
+GO
+EXECUTE SP_Materia_IngresarMateria 'PARASITOLOGIA MEDICA', 4
+GO
+EXECUTE SP_Materia_IngresarMateria 'EPIDEMIOLOGIA', 5
+GO
+
+--  Periodo VIII ----
+EXECUTE SP_Materia_IngresarMateria 'MEDICINA BASADA EN EVIDENCIA', 3
+GO
+EXECUTE SP_Materia_IngresarMateria 'FISIOLOGIA II', 6
+GO
+EXECUTE SP_Materia_IngresarMateria 'NUTRICION', 3
+GO
+EXECUTE SP_Materia_IngresarMateria 'PSICOPATOLOGIA', 5
+GO
+
+--  Periodo IX ----
+EXECUTE SP_Materia_IngresarMateria 'FISIOPATOLOGIA I', 5
+GO
+EXECUTE SP_Materia_IngresarMateria 'FARMACOLOGIA I', 5
+GO
+EXECUTE SP_Materia_IngresarMateria 'PATOLOGIA GENERAL', 8
+GO
+EXECUTE SP_Materia_IngresarMateria 'BIOETICA', 3
+GO
+EXECUTE SP_Materia_IngresarMateria 'PREVENCIO DE SALUD', 6
+GO
+
+--  Periodo X ----
+EXECUTE SP_Materia_IngresarMateria 'FISIOPATOLOGIA II', 5
+GO
+EXECUTE SP_Materia_IngresarMateria 'FARMACOLOGIA II', 5
+GO
+EXECUTE SP_Materia_IngresarMateria 'PATOLOGIA SITEMICA', 8
+GO
+EXECUTE SP_Materia_IngresarMateria 'ADMINISTRACION DE SALUD', 3
+GO
+
+--  Periodo XI ----
+EXECUTE SP_Materia_IngresarMateria 'RADIOLOGIA E IMAGEONOLOGIA', 3
+GO
+EXECUTE SP_Materia_IngresarMateria 'SEMIOLOGIA I', 12
+GO
+EXECUTE SP_Materia_IngresarMateria 'PATOLOGIA CLINICA', 8
+GO
+EXECUTE SP_Materia_IngresarMateria 'MEDICINA LEGAL Y PATOLOGIA FORENSE', 3
+GO
+
+--  Periodo XII ----
+EXECUTE SP_Materia_IngresarMateria 'TERAPEUTA FARMACOLOGICA', 6
+GO
+EXECUTE SP_Materia_IngresarMateria 'SEMIOLOGIA II', 12
+GO
+EXECUTE SP_Materia_IngresarMateria 'REHABILITACION FISICA ', 3
+GO
+EXECUTE SP_Materia_IngresarMateria 'PSQUIATRIA', 5
+GO
+
+--  Periodo XIII ----
+EXECUTE SP_Materia_IngresarMateria 'TERAPEUTICA ALTERNATIVA', 4
+GO
+EXECUTE SP_Materia_IngresarMateria 'PREVENCION DE SALUD', 8
+GO
+EXECUTE SP_Materia_IngresarMateria 'MEDICINA PEDIATRICA', 8
+GO
+EXECUTE SP_Materia_IngresarMateria 'MEDICINA DEL ADULTO', 3
+GO
+
+--  Periodo XIV ----
+EXECUTE SP_Materia_IngresarMateria 'CIRUGIA I', 8
+GO
+EXECUTE SP_Materia_IngresarMateria 'GINECOLOGIA Y OBSTETRICA II', 8
+GO
+EXECUTE SP_Materia_IngresarMateria 'MEDICINA DEL ADULTO II', 8
+GO
+
+
+--  Periodo XV ----
+EXECUTE SP_Materia_IngresarMateria 'CIRUGIA II', 5
+GO
+EXECUTE SP_Materia_IngresarMateria 'GINECOLOGIA Y OBSTETRICA III', 8
+GO
+EXECUTE SP_Materia_IngresarMateria 'MEDICINA PEDIATRICA II', 8
+GO
+
+
+--  Periodo XVI ----
+EXECUTE SP_Materia_IngresarMateria 'MEDICINA PEDIATRICA III ', 8
+GO
+EXECUTE SP_Materia_IngresarMateria 'MEDICINA DEL ADULTO III', 8
+GO
+EXECUTE SP_Materia_IngresarMateria 'SERVICIO COMUNITARIO', 12
+GO
+
+--  Periodo XVII ----
+EXECUTE SP_Materia_IngresarMateria 'OTORRINOLARINGOLOGIA', 3
+GO
+EXECUTE SP_Materia_IngresarMateria 'ORTOPEDA Y TRAUMATOLOGIA', 4
+GO
+EXECUTE SP_Materia_IngresarMateria 'UROLOGIA', 3
+GO
+EXECUTE SP_Materia_IngresarMateria 'OFTALMOLOGIA', 3
+GO
+
+--  Periodo XVIII ----
+EXECUTE SP_Materia_IngresarMateria 'GERIATRIA', 3
+GO
+EXECUTE SP_Materia_IngresarMateria 'MEDICINA FETAL', 3
+GO
+EXECUTE SP_Materia_IngresarMateria 'NEONATOLOGIA', 3
+GO
+EXECUTE SP_Materia_IngresarMateria 'DERMATOLOGIA', 4
+GO
+EXECUTE SP_Materia_IngresarMateria 'NEUROLOGIA', 4
+GO
+
+--  Periodo XIX ----
+EXECUTE SP_Materia_IngresarMateria 'INTERNADO CIRUGIA', 12
+GO
+EXECUTE SP_Materia_IngresarMateria 'INTERNADO GINECOBSTETRICIA', 12
+GO
+EXECUTE SP_Materia_IngresarMateria 'INTERNADO PEDIATRIA', 12
+GO
+EXECUTE SP_Materia_IngresarMateria 'INTERNADO MEDICIN INTERNA', 12
+GO
+
+--  Periodo XX ----
+EXECUTE SP_Materia_IngresarMateria 'SERVICIO SOCIAL', 5
+GO
+
+-------- Agregando las clases AL PEMNSUM de ENFERMERIA MEdiante el Procedure ------
+-- Periodo II ----
+EXECUTE SP_Materia_IngresarMateria 'FUNDAMENTOS DE ENFEMERIA', 4
+GO
+
+-- Periodo III ----
+EXECUTE SP_Materia_IngresarMateria 'GESTION DE LA CALIDAD TOTAL', 3
+GO
+EXECUTE SP_Materia_IngresarMateria 'HISTOLOGIA PARA ENFERMERIA', 4
+GO
+EXECUTE SP_Materia_IngresarMateria 'INTRODUCCION A LA SALUD PUBLICA Y ATENCION PRIMARIA DE LA SA', 4
+GO
+EXECUTE SP_Materia_IngresarMateria 'ETICA PROFESIONAL', 3
+GO
+
+-- Periodo IV ----
+EXECUTE SP_Materia_IngresarMateria 'EMBRIOLOGIA PARA ENFERMERIA', 4
+GO
+EXECUTE SP_Materia_IngresarMateria 'PREVENCION EN LA SALUD PARA LA ENFERMERIA', 3
+GO
+EXECUTE SP_Materia_IngresarMateria 'TEORIAS Y MODELOS EN ENFERMERIA', 4
+GO
+
+-- Periodo V ----
+EXECUTE SP_Materia_IngresarMateria 'ANATOMIA GENERAL', 7
+GO
+EXECUTE SP_Materia_IngresarMateria 'MICROBIOLOGIA PARA LA ENFERMERIA', 3
+GO
+EXECUTE SP_Materia_IngresarMateria 'PARASITOLOGIA PARA LA ENFERMERIA', 3
+GO
+EXECUTE SP_Materia_IngresarMateria 'FISIOLOGIA PARA LA ENFERMERIA', 4
+GO
+
+-- Periodo VI ----
+
+EXECUTE SP_Materia_IngresarMateria 'NUTRICION Y DIETETICA', 3
+GO
+
+EXECUTE SP_Materia_IngresarMateria 'FISIOPATOLOGIA PARA LA ENFERMERIA', 4
+GO
+EXECUTE SP_Materia_IngresarMateria 'SEMIOLOGIA PARA LA ENFERMERIA', 7
+GO
+EXECUTE SP_Materia_IngresarMateria 'PSICOLOGIA APLICADA A LA ENFERMERIA', 3
+GO
+
+
+-- Periodo VII ----
+
+EXECUTE SP_Materia_IngresarMateria 'FARMACOLOGIA', 5
+GO
+EXECUTE SP_Materia_IngresarMateria 'FARMACOLOGIA PARA LA ENFERMERIA', 4
+GO
+EXECUTE SP_Materia_IngresarMateria 'ENFERMERIA EN CUIDADOS ADULTOS', 3
+GO
+EXECUTE SP_Materia_IngresarMateria 'ENFERMERIA MATERNO INFANTIL II', 6
+GO
+EXECUTE SP_Materia_IngresarMateria 'ENFERMERIA EN CUIDADOS MATERNO INFANTIL II', 3
+GO
+EXECUTE SP_Materia_IngresarMateria 'ETICA EN NEFERMERIA', 3
+GO
+
+-- Periodo VIII ----
+EXECUTE SP_Materia_IngresarMateria 'ENFERMERIA BASADA EN EVIDENCIA', 3
+GO
+
+EXECUTE SP_Materia_IngresarMateria 'ENFERMERIA EN CUIDADOS GINECO-OBSTRETICOS', 4
+GO
+EXECUTE SP_Materia_IngresarMateria 'ENFERMERIA COMUNITARIA', 3
+GO
+EXECUTE SP_Materia_IngresarMateria 'ADMINISTRACION DE SERVICIOS DE SALUD EN ENFERMERIA', 3
+GO
+
+-- Periodo IX ----
+EXECUTE SP_Materia_IngresarMateria 'INVESTIGACION EN CIENCIAS DE LA SALUD', 3
+GO
+EXECUTE SP_Materia_IngresarMateria 'ENFERMERIA EN CUIDADOS DE EL NINO Y EL ADOLECENTES', 4
+GO
+
+EXECUTE SP_Materia_IngresarMateria 'ENFERMERIA MEDICO QUIRURGUCA I', 4
+GO
+
+EXECUTE SP_Materia_IngresarMateria 'SALUD MENTAL Y PSICOPATOLOGICA ', 5
+GO
+
+EXECUTE SP_Materia_IngresarMateria 'GESTION Y ADMINISTRACION HOSPITALARIA', 3
+GO
+
+-- Periodo X ----
+EXECUTE SP_Materia_IngresarMateria 'ENFERMERIA MEDIO QUIRURGICA II', 4
+GO
+EXECUTE SP_Materia_IngresarMateria 'ENFERMERIA AMBULATORIA', 3
+GO
+
+-- Periodo XI ----
+EXECUTE SP_Materia_IngresarMateria 'DISENO Y GESTION DE PROYECTOS DE SALUD', 3
+GO
+EXECUTE SP_Materia_IngresarMateria 'ENFERMERIA EN REHABILITACION Y SALUD OCUPACIONAL', 3
+GO
+EXECUTE SP_Materia_IngresarMateria 'ENFERMERIA GERIATRICA', 3
+GO
+EXECUTE SP_Materia_IngresarMateria 'ENFERMERIA EN EMERGENCIA Y CUIDADOS CRITICOS', 3
+GO
+EXECUTE SP_Materia_IngresarMateria 'ENFERMERIA EN CUIDADOS PALIATIVOS', 3
+GO
+
+-- Periodo XII ----
+EXECUTE SP_Materia_IngresarMateria 'INTERNADO ROTATORIO EN ENFERMRIA CLINICA (GINECOLOGIA Y OBS)', 5
+GO
+EXECUTE SP_Materia_IngresarMateria 'INTERNADO ROTATORIO EN ENFERMRIA CLINICA (PEDIATRIA)', 5
+GO
+EXECUTE SP_Materia_IngresarMateria 'INTERNADO ROTATORIO EN ENFERMRIA CLINICA (MEDICINA INTERNA)', 5
+GO
+
+-- Periodo XIII ----
+EXECUTE SP_Materia_IngresarMateria 'INTERNADO ROTATORIO EN ENFERMRIA PSIQUIATRICA', 4
+GO
+EXECUTE SP_Materia_IngresarMateria 'INTERNADO ROTATORIO EN ENFERMRIA COMUNITARIA', 4
+GO
+EXECUTE SP_Materia_IngresarMateria 'INTERNADO ROTATORIO EN ENFERMRIA CLINICA (CIRUGIA)', 5
+GO
+
+EXECUTE SP_Materia_IngresarMateria 'MATEMÁTICAS FINANCIERA', 3
+GO
+
+EXECUTE SP_Materia_IngresarMateria 'DISEÑO DE PUENTES', 4
+GO
+
+EXECUTE SP_Materia_IngresarMateria 'TALLER DE DISEÑO COMBINADO', 4
+GO
+
+EXECUTE SP_Materia_IngresarMateria 'DISEÑO DE URBANIZACIONES', 4
+GO
+
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+EXECUTE SP_Pensum_IngresarPensum 2, 1
+GO
+
+EXECUTE SP_Pensum_IngresarPensum 2, 2
+GO
+
+EXECUTE SP_Pensum_IngresarPensum 2, 3
+GO
+
+EXECUTE SP_Pensum_IngresarPensum 2, 4
+GO
+
+EXECUTE SP_Pensum_IngresarPensum 2, 5
+GO
+
+EXECUTE SP_Pensum_IngresarPensum 2, 6
+GO
+
+EXECUTE SP_Pensum_IngresarPensum 2, 7
+GO
+
+EXECUTE SP_Pensum_IngresarPensum 2, 8
+GO
+
+EXECUTE SP_Pensum_IngresarPensum 2, 9
+GO
+
+EXECUTE SP_Pensum_IngresarPensum 2, 10
+GO
+
+EXECUTE SP_Pensum_IngresarPensum 2, 11
+GO
+
+EXECUTE SP_Pensum_IngresarPensum 2, 12
+GO
+
+EXECUTE SP_Pensum_IngresarPensum 2, 13
+GO
+
+EXECUTE SP_Pensum_IngresarPensum 2, 14
+GO
+
+EXECUTE SP_Pensum_IngresarPensum 2, 15
+GO
+
+EXECUTE SP_Pensum_IngresarPensum 2, 16
+GO
+
+EXECUTE SP_Pensum_IngresarPensum 2, 17
+GO
+
+EXECUTE SP_Pensum_IngresarPensum 2, 18
+GO
+
+EXECUTE SP_Pensum_IngresarPensum 2, 19
+GO
+
+EXECUTE SP_Pensum_IngresarPensum 2, 20
+GO
+
+EXECUTE SP_Pensum_IngresarPensum 2, 21
+GO
+
+EXECUTE SP_Pensum_IngresarPensum 2, 22
+GO
+
+EXECUTE SP_Pensum_IngresarPensum 2, 23
+GO
+
+EXECUTE SP_Pensum_IngresarPensum 2, 24
+GO
+
+EXECUTE SP_Pensum_IngresarPensum 2, 25
+GO
+
+EXECUTE SP_Pensum_IngresarPensum 2, 26
+GO
+
+EXECUTE SP_Pensum_IngresarPensum 2, 27
+GO
+
+EXECUTE SP_Pensum_IngresarPensum 2, 28
+GO
+
+EXECUTE SP_Pensum_IngresarPensum 2, 29
+GO
+
+EXECUTE SP_Pensum_IngresarPensum 2, 30
+GO
+
+EXECUTE SP_Pensum_IngresarPensum 2, 31
+GO
+
+EXECUTE SP_Pensum_IngresarPensum 2, 32
+GO
+
+EXECUTE SP_Pensum_IngresarPensum 2, 33
+GO
+
+EXECUTE SP_Pensum_IngresarPensum 2, 34
+GO
+
+EXECUTE SP_Pensum_IngresarPensum 2, 35
+GO
+
+EXECUTE SP_Pensum_IngresarPensum 2, 36
+GO
+
+EXECUTE SP_Pensum_IngresarPensum 2, 37
+GO
+
+EXECUTE SP_Pensum_IngresarPensum 2, 38
+GO
+
+EXECUTE SP_Pensum_IngresarPensum 2, 39
+GO
+
+EXECUTE SP_Pensum_IngresarPensum 2, 40
+GO
+
+EXECUTE SP_Pensum_IngresarPensum 2, 41
+GO
+
+EXECUTE SP_Pensum_IngresarPensum 2, 42
+GO
+
+EXECUTE SP_Pensum_IngresarPensum 2, 43
+GO
+
+EXECUTE SP_Pensum_IngresarPensum 2, 44
+GO
+
+EXECUTE SP_Pensum_IngresarPensum 2, 45
+GO
+
+EXECUTE SP_Pensum_IngresarPensum 2, 46
+GO
+
+EXECUTE SP_Pensum_IngresarPensum 2, 47
+GO
+
+EXECUTE SP_Pensum_IngresarPensum 2, 48
+GO
+
+EXECUTE SP_Pensum_IngresarPensum 2, 49
+GO
+
+EXECUTE SP_Pensum_IngresarPensum 2, 50
+GO
+
+EXECUTE SP_Pensum_IngresarPensum 2, 51
+GO
+
+EXECUTE SP_Pensum_IngresarPensum 2, 52
+GO
+
+EXECUTE SP_Pensum_IngresarPensum 2, 53
+GO
+
+EXECUTE SP_Pensum_IngresarPensum 2, 54
+GO
+
+EXECUTE SP_Pensum_IngresarPensum 2, 55
+GO
+
+EXECUTE SP_Pensum_IngresarPensum 2, 56
+GO
+
+EXECUTE SP_Pensum_IngresarPensum 2, 57
+GO
+
+EXECUTE SP_Pensum_IngresarPensum 2, 58
+GO
+
+EXECUTE SP_Pensum_IngresarPensum 2, 59
+GO
+
+EXECUTE SP_Pensum_IngresarPensum 2, 60
+GO
+
+------------------------------------------------------------------------------------------------------------------
+------ Ingresamos las clases del pensum de la majestuosa carrera de ingenieria en ciencias de la computacion
+-----------------------------------------------------------------------------------------------------------
+EXECUTE SP_Pensum_IngresarPensum 1, 4
+GO
+
+EXECUTE SP_Pensum_IngresarPensum 1, 2
+GO
+
+EXECUTE SP_Pensum_IngresarPensum 1, 61
+GO
+
+EXECUTE SP_Pensum_IngresarPensum 1, 3
+GO
+
+EXECUTE SP_Pensum_IngresarPensum 1, 5
+GO
+
+EXECUTE SP_Pensum_IngresarPensum 1, 9
+GO
+
+EXECUTE SP_Pensum_IngresarPensum 1, 8
+GO
+
+EXECUTE SP_Pensum_IngresarPensum 1, 62
+GO
+
+EXECUTE SP_Pensum_IngresarPensum 1, 1
+GO
+
+EXECUTE SP_Pensum_IngresarPensum 1, 10
+GO
+
+EXECUTE SP_Pensum_IngresarPensum 1, 7
+GO
+
+EXECUTE SP_Pensum_IngresarPensum 1, 13
+GO
+
+EXECUTE SP_Pensum_IngresarPensum 1, 63
+GO
+
+EXECUTE SP_Pensum_IngresarPensum 1, 64
+GO
+
+EXECUTE SP_Pensum_IngresarPensum 1, 17
+GO
+
+EXECUTE SP_Pensum_IngresarPensum 1, 18
+GO
+
+EXECUTE SP_Pensum_IngresarPensum 1, 65
+GO
+
+EXECUTE SP_Pensum_IngresarPensum 1, 19
+GO
+
+EXECUTE SP_Pensum_IngresarPensum 1, 15
+GO
+
+EXECUTE SP_Pensum_IngresarPensum 1, 66
+GO
+
+EXECUTE SP_Pensum_IngresarPensum 1, 23
+GO
+
+EXECUTE SP_Pensum_IngresarPensum 1, 67
+GO
+
+EXECUTE SP_Pensum_IngresarPensum 1, 68
+GO
+
+EXECUTE SP_Pensum_IngresarPensum 1, 346
+GO
+
+EXECUTE SP_Pensum_IngresarPensum 1, 69
+GO
+
+EXECUTE SP_Pensum_IngresarPensum 1, 33
+GO
+
+EXECUTE SP_Pensum_IngresarPensum 1, 70
+GO
+
+EXECUTE SP_Pensum_IngresarPensum 1, 71
+GO
+
+EXECUTE SP_Pensum_IngresarPensum 1, 72
+GO
+
+EXECUTE SP_Pensum_IngresarPensum 1, 73
+GO
+
+EXECUTE SP_Pensum_IngresarPensum 1, 74
+GO
+
+EXECUTE SP_Pensum_IngresarPensum 1, 75
+GO
+
+EXECUTE SP_Pensum_IngresarPensum 1, 76
+GO
+
+EXECUTE SP_Pensum_IngresarPensum 1, 52
+GO
+
+EXECUTE SP_Pensum_IngresarPensum 1, 77
+GO
+
+EXECUTE SP_Pensum_IngresarPensum 1, 78
+GO
+
+EXECUTE SP_Pensum_IngresarPensum 1, 79
+GO
+
+EXECUTE SP_Pensum_IngresarPensum 1, 80
+GO
+
+EXECUTE SP_Pensum_IngresarPensum 1, 81
+GO
+
+EXECUTE SP_Pensum_IngresarPensum 1, 82
+GO
+
+EXECUTE SP_Pensum_IngresarPensum 1, 43
+GO
+
+EXECUTE SP_Pensum_IngresarPensum 1, 83
+GO
+
+EXECUTE SP_Pensum_IngresarPensum 1, 84
+GO
+
+EXECUTE SP_Pensum_IngresarPensum 1, 85
+GO
+
+EXECUTE SP_Pensum_IngresarPensum 1, 86
+GO
+
+EXECUTE SP_Pensum_IngresarPensum 1, 48
+GO
+
+EXECUTE SP_Pensum_IngresarPensum 1, 87
+GO
+
+EXECUTE SP_Pensum_IngresarPensum 1, 47
+GO
+
+EXECUTE SP_Pensum_IngresarPensum 1, 88
+GO
+
+EXECUTE SP_Pensum_IngresarPensum 1, 89
+GO
+
+EXECUTE SP_Pensum_IngresarPensum 1, 53
+GO
+
+EXECUTE SP_Pensum_IngresarPensum 1, 90
+GO
+
+EXECUTE SP_Pensum_IngresarPensum 1, 91
+GO
+
+EXECUTE SP_Pensum_IngresarPensum 1, 92
+GO
+
+EXECUTE SP_Pensum_IngresarPensum 1, 93
+GO
+
+EXECUTE SP_Pensum_IngresarPensum 1, 94
+GO
+
+EXECUTE SP_Pensum_IngresarPensum 1, 95
+GO
+
+EXECUTE SP_Pensum_IngresarPensum 1, 96
+GO
+----------------------------------------------------------------------------------------------------------------------------
+------------------------------------
+-- Ingresamos las clases para el pensum de civil
+
+EXECUTE SP_Pensum_IngresarPensum 3, 4
+GO
+
+EXECUTE SP_Pensum_IngresarPensum 3, 3
+GO
+
+EXECUTE SP_Pensum_IngresarPensum 3, 2
+GO
+
+EXECUTE SP_Pensum_IngresarPensum 3, 11
+GO
+
+EXECUTE SP_Pensum_IngresarPensum 3, 5
+GO
+
+EXECUTE SP_Pensum_IngresarPensum 3, 9
+GO
+
+EXECUTE SP_Pensum_IngresarPensum 3, 19
+GO
+
+EXECUTE SP_Pensum_IngresarPensum 3, 8
+GO
+
+EXECUTE SP_Pensum_IngresarPensum 3, 97
+GO
+
+EXECUTE SP_Pensum_IngresarPensum 3, 10
+GO
+
+EXECUTE SP_Pensum_IngresarPensum 3, 98
+GO
+
+EXECUTE SP_Pensum_IngresarPensum 3, 99
+GO
+
+EXECUTE SP_Pensum_IngresarPensum 3, 13
+GO
+
+EXECUTE SP_Pensum_IngresarPensum 3, 14
+GO
+
+EXECUTE SP_Pensum_IngresarPensum 3, 100
+GO
+
+EXECUTE SP_Pensum_IngresarPensum 3, 34
+GO
+
+EXECUTE SP_Pensum_IngresarPensum 3, 24
+GO
+
+EXECUTE SP_Pensum_IngresarPensum 3, 18
+GO
+
+EXECUTE SP_Pensum_IngresarPensum 3, 101
+GO
+
+EXECUTE SP_Pensum_IngresarPensum 3, 102
+GO
+
+EXECUTE SP_Pensum_IngresarPensum 3, 103
+GO
+
+EXECUTE SP_Pensum_IngresarPensum 3, 104
+GO
+
+EXECUTE SP_Pensum_IngresarPensum 3, 22
+GO
+
+EXECUTE SP_Pensum_IngresarPensum 3, 7
+GO
+
+EXECUTE SP_Pensum_IngresarPensum 3, 105
+GO
+
+EXECUTE SP_Pensum_IngresarPensum 3, 106
+GO
+
+EXECUTE SP_Pensum_IngresarPensum 3, 107
+GO
+
+EXECUTE SP_Pensum_IngresarPensum 3, 108
+GO
+
+EXECUTE SP_Pensum_IngresarPensum 3, 33
+GO
+
+EXECUTE SP_Pensum_IngresarPensum 3, 109
+GO
+
+EXECUTE SP_Pensum_IngresarPensum 3, 110
+GO
+
+EXECUTE SP_Pensum_IngresarPensum 3, 1
+GO
+
+EXECUTE SP_Pensum_IngresarPensum 3, 111
+GO
+
+EXECUTE SP_Pensum_IngresarPensum 3, 112
+GO
+
+EXECUTE SP_Pensum_IngresarPensum 3, 113
+GO
+
+EXECUTE SP_Pensum_IngresarPensum 3, 114
+GO
+
+EXECUTE SP_Pensum_IngresarPensum 3, 115
+GO
+
+EXECUTE SP_Pensum_IngresarPensum 3, 43
+GO
+
+EXECUTE SP_Pensum_IngresarPensum 3, 49
+GO
+
+EXECUTE SP_Pensum_IngresarPensum 3, 116
+GO
+
+EXECUTE SP_Pensum_IngresarPensum 3, 117
+GO
+
+EXECUTE SP_Pensum_IngresarPensum 3, 118
+GO
+
+EXECUTE SP_Pensum_IngresarPensum 3, 48
+GO
+
+EXECUTE SP_Pensum_IngresarPensum 3, 119
+GO
+
+EXECUTE SP_Pensum_IngresarPensum 3, 120
+GO
+
+EXECUTE SP_Pensum_IngresarPensum 3, 121
+GO
+
+EXECUTE SP_Pensum_IngresarPensum 3, 122
+GO
+
+EXECUTE SP_Pensum_IngresarPensum 3, 47
+GO
+
+EXECUTE SP_Pensum_IngresarPensum 3, 123
+GO
+
+EXECUTE SP_Pensum_IngresarPensum 3, 124
+GO
+
+EXECUTE SP_Pensum_IngresarPensum 3, 125
+GO
+
+EXECUTE SP_Pensum_IngresarPensum 3, 126
+GO
+
+EXECUTE SP_Pensum_IngresarPensum 3, 127
+GO
+
+EXECUTE SP_Pensum_IngresarPensum 3, 116
+GO
+
+EXECUTE SP_Pensum_IngresarPensum 3, 347
+GO
+
+EXECUTE SP_Pensum_IngresarPensum 3, 348
+GO
+
+EXECUTE SP_Pensum_IngresarPensum 3, 349
+GO
+
+EXECUTE SP_Pensum_IngresarPensum 3, 53
+GO
+
+EXECUTE SP_Pensum_IngresarPensum 3, 60
+GO
+
+---------------------------------------------------------------------------------------------------------------------------
+-- llenamos el pensum de arquitectura
+
+EXECUTE SP_Pensum_IngresarPensum 4, 5
+GO
+
+EXECUTE SP_Pensum_IngresarPensum 4, 3
+GO
+
+EXECUTE SP_Pensum_IngresarPensum 4, 11
+GO
+
+EXECUTE SP_Pensum_IngresarPensum 4, 2
+GO
+
+EXECUTE SP_Pensum_IngresarPensum 4, 4
+GO
+
+EXECUTE SP_Pensum_IngresarPensum 4, 10
+GO
+
+EXECUTE SP_Pensum_IngresarPensum 4, 128
+GO
+
+EXECUTE SP_Pensum_IngresarPensum 4, 129
+GO
+
+EXECUTE SP_Pensum_IngresarPensum 4, 8
+GO
+
+EXECUTE SP_Pensum_IngresarPensum 4, 9
+GO
+
+EXECUTE SP_Pensum_IngresarPensum 4, 19
+GO
+
+EXECUTE SP_Pensum_IngresarPensum 4, 130
+GO
+
+EXECUTE SP_Pensum_IngresarPensum 4, 97
+GO
+
+EXECUTE SP_Pensum_IngresarPensum 4, 13
+GO
+
+EXECUTE SP_Pensum_IngresarPensum 4, 131
+GO
+
+EXECUTE SP_Pensum_IngresarPensum 4, 98
+GO
+
+EXECUTE SP_Pensum_IngresarPensum 4, 132
+GO
+
+EXECUTE SP_Pensum_IngresarPensum 4, 133
+GO
+
+EXECUTE SP_Pensum_IngresarPensum 4, 100
+GO
+
+EXECUTE SP_Pensum_IngresarPensum 4, 134
+GO
+
+EXECUTE SP_Pensum_IngresarPensum 4, 135
+GO
+
+EXECUTE SP_Pensum_IngresarPensum 4, 136
+GO
+
+EXECUTE SP_Pensum_IngresarPensum 4, 137
+GO
+
+EXECUTE SP_Pensum_IngresarPensum 4, 23
+GO
+
+EXECUTE SP_Pensum_IngresarPensum 4, 7
+GO
+
+EXECUTE SP_Pensum_IngresarPensum 4, 104
+GO
+
+EXECUTE SP_Pensum_IngresarPensum 4, 138
+GO
+
+EXECUTE SP_Pensum_IngresarPensum 4, 139
+GO
+
+EXECUTE SP_Pensum_IngresarPensum 4, 140
+GO
+
+EXECUTE SP_Pensum_IngresarPensum 4, 141
+GO
+
+EXECUTE SP_Pensum_IngresarPensum 4, 107
+GO
+
+EXECUTE SP_Pensum_IngresarPensum 4, 145
+GO
+
+EXECUTE SP_Pensum_IngresarPensum 4, 144
+GO
+
+EXECUTE SP_Pensum_IngresarPensum 4, 143
+GO
+
+EXECUTE SP_Pensum_IngresarPensum 4, 1
+GO
+
+EXECUTE SP_Pensum_IngresarPensum 4, 110
+GO
+
+EXECUTE SP_Pensum_IngresarPensum 4, 145
+GO
+
+EXECUTE SP_Pensum_IngresarPensum 4, 146
+GO
+
+EXECUTE SP_Pensum_IngresarPensum 4, 147
+GO
+
+EXECUTE SP_Pensum_IngresarPensum 4, 148
+GO
+
+EXECUTE SP_Pensum_IngresarPensum 4, 15
+GO
+
+EXECUTE SP_Pensum_IngresarPensum 4, 149
+GO
+
+EXECUTE SP_Pensum_IngresarPensum 4, 150
+GO
+
+EXECUTE SP_Pensum_IngresarPensum 4, 151
+GO
+
+EXECUTE SP_Pensum_IngresarPensum 4, 152
+GO
+
+EXECUTE SP_Pensum_IngresarPensum 4, 37
+GO
+
+EXECUTE SP_Pensum_IngresarPensum 4, 153
+GO
+
+EXECUTE SP_Pensum_IngresarPensum 4, 154
+GO
+
+EXECUTE SP_Pensum_IngresarPensum 4, 155
+GO
+
+EXECUTE SP_Pensum_IngresarPensum 4, 43
+GO
+
+EXECUTE SP_Pensum_IngresarPensum 4, 156
+GO
+
+EXECUTE SP_Pensum_IngresarPensum 4, 157
+GO
+
+EXECUTE SP_Pensum_IngresarPensum 4, 158
+GO
+
+EXECUTE SP_Pensum_IngresarPensum 4, 159
+GO
+
+EXECUTE SP_Pensum_IngresarPensum 4, 48
+GO
+
+EXECUTE SP_Pensum_IngresarPensum 4, 160
+GO
+
+EXECUTE SP_Pensum_IngresarPensum 4, 161
+GO
+
+EXECUTE SP_Pensum_IngresarPensum 4, 162
+GO
+
+EXECUTE SP_Pensum_IngresarPensum 4, 33
+GO
+
+EXECUTE SP_Pensum_IngresarPensum 4, 53
+GO
+
+EXECUTE SP_Pensum_IngresarPensum 4, 163
+GO
+
+EXECUTE SP_Pensum_IngresarPensum 4, 164
+GO
+
+EXECUTE SP_Pensum_IngresarPensum 4, 165
+GO
+
+EXECUTE SP_Pensum_IngresarPensum 4, 166
+GO
+
+EXECUTE SP_Pensum_IngresarPensum 4, 47
+GO
+
+
+--------------------------------------------------------------------------------------------------------------------------------------------------------
+---------------------------------------------|Tabla Alumno|---------------------------------------------------------------------------------------------
+EXECUTE SP_Alumno_ingresarAlumno '0318199800463','Pablo','Juan','Castro','Perez',2,'05-04-1985',1,21, '91234567', 'Castropablo85@gmail.com', 'Soltero',  'Hondureña',1
+GO
+
+EXECUTE SP_Alumno_ingresarAlumno '0317199800423','Pablo','Alberto','Dominguez','Sanchez',2,'12-06-1998',2,21, '91235967', 'Dominguezpablo98@gmail.com', 'Soltero',  'Hondureña',1
+GO
+
+EXECUTE SP_Alumno_ingresarAlumno '0318199800423','Alan','Alberto','Perez','Sanchez',2,'12-08-1998',3,21, '98935967', 'Perezalan98@gmail.com', 'Soltero',  'Hondureña',1
+GO
+
+EXECUTE SP_Alumno_ingresarAlumno '0418199800429','Fernando','Jose','Herrera','Gerrero',2,'12-05-1998',4,21, '98931267', 'Herrerafernando98@gmail.com', 'Soltero',  'Hondureña',1
+GO
+
+EXECUTE SP_Alumno_ingresarAlumno '0318199800400','Alan','Fernando','Trochez','Sanchez',2,'12-06-1998',5,21, '97935967', 'Trochezalan98@gmail.com', 'Soltero',  'Hondureña',1
+GO
+
+EXECUTE SP_Alumno_ingresarAlumno '0316200000253','Marcos','Antonio','Ramirez','Sanchez',2,'02-03-1998',6,19, '93937867', 'Ramirezmarcos00@gmail.com', 'Soltero',  'Hondureña',1
+GO
+
+EXECUTE SP_Alumno_ingresarAlumno '0315199900223','Sara','Lizbeth','Santos','Herrara',1,'02-12-1999',7,20, '90567867', 'SantosSara90@gmail.com', 'Soltero',  'Hondureña',1
+GO
+
+EXECUTE SP_Alumno_ingresarAlumno '0316199900228','Isis','Lizbeth','Castro','Perez',1,'04-02-1999',8,20, '90567870', 'Castroisis90@gmail.com', 'Soltero',  'Hondureña',1
+GO
+
+EXECUTE SP_Alumno_ingresarAlumno '0316199900443','Luna','Carolina','Villanueva','Lopez',1,'11-21-1999',9,20, '90565667', 'VillanuevaLuna90@gmail.com', 'Soltero',  'Hondureña',1
+GO
+
+EXECUTE SP_Alumno_ingresarAlumno '0302199900843','Cristina','Esperanza','Garcia','Diaz',1,'03-21-1999',10,20, '90585236', 'Garciacristina90@gmail.com', 'Soltero',  'Hondureña',1
+GO
+
+
+
+EXECUTE SP_Alumno_ingresarAlumno '0305199800443','Cristian','josue','Villanueva','Lopez',2,'07-28-1998',11,21, '90521567', 'VillanuevaCristian98@gmail.com', 'Soltero',  'Hondureña',2
+GO
+
+EXECUTE SP_Alumno_ingresarAlumno '0416199800443','Luis','Fernando','Torres','Rojas',2,'01-28-1998',12,21, '91089657', 'Torresluis98@gmail.com', 'Soltero',  'Hondureña',2
+GO
+
+EXECUTE SP_Alumno_ingresarAlumno '0316199801443','Abel','jose','Ortiz','Juares',2,'05-28-1998',13,21, '99500567', 'Ortizabel20@gmail.com', 'Soltero',  'Hondureña',2
+GO
+
+EXECUTE SP_Alumno_ingresarAlumno '0315199802443','Alex','josue','Medina','Rios',2,'12-05-1998',14,21, '99513567', 'MedinaAlex12@gmail.com', 'Soltero',  'Hondureña',2
+GO
+
+EXECUTE SP_Alumno_ingresarAlumno '0306199801243','Augusto','Manuel','Ponce','Cordoba',2,'01-09-1998',15,21, '99514580', 'Ponceaugusto@gmail.com', 'Soltero',  'Hondureña',2
+GO
+
+EXECUTE SP_Alumno_ingresarAlumno '0311199901443','Amparo','Mariela','Valdez','Juares',1,'05-23-1998',16,20, '92517567', 'Valdezamparo52@gmail.com', 'Soltero',  'Hondureña',2
+GO
+
+EXECUTE SP_Alumno_ingresarAlumno '0314199901442','Rebeca','Isabel','Maldonado','Mendez',1,'06-20-1999',17,20, '99515507', 'Maldonadorebeca10@gmail.com', 'Soltero',  'Hondureña',2
+GO
+
+EXECUTE SP_Alumno_ingresarAlumno '0312200000443','Carla','Luisa','Farias','Cruz',1,'02-02-2000',18,29, '91317937', 'Fariascarla@gmail.com', 'Soltero',  'Hondureña',2
+GO
+
+EXECUTE SP_Alumno_ingresarAlumno '0302199900013','Cloé','Anabel','Blanco','Ayala',1,'03-12-1999',19,20, '90518500', 'Blancocloe78@gmail.com', 'Soltero',  'Hondureña',2
+GO
+
+EXECUTE SP_Alumno_ingresarAlumno '0301199800240','Maite','Elisabet','Franco','Gomez',1,'11-25-1998',16,21, '90527590', 'Francomaite01@gmail.com', 'Soltero',  'Hondureña',2
+GO
+
+--------------------------------------------------------------------------------------------------------------------------------------------------------
+---------------------------------------------------------------|Tabla Docente|--------------------------------------------------------------------------
+EXECUTE SP_Docente_IngresarDocente '0318198700456','Carlos','Ariel','Lutz','Callejas',2,21,'03-06-1987',33,'Casado',9,'Carlos87@gmail.com','98635241','Hondureña'
+GO
+
+EXECUTE SP_Docente_IngresarDocente '0418198900256','Felipe','Onan','Molina','Vega',2,22,'12-31-1989',30,'Soltero',11,'FelipeMolina89@gmail.com','95035001','Hondureña'
+GO
+
+EXECUTE SP_Docente_IngresarDocente '0408198900256','Ana','Raquel','Perdomo','Castellanos',1,23,'11-18-1989',30,'Soltero',4,'AnaPerdomo09@gmail.com','99095909','Hondureña'
+GO
+
+EXECUTE SP_Docente_IngresarDocente '0115198900123','Salomon','Abel','Caceres','Paz',2,24,'02-25-1989',30,'Casado',2,'Salomoncaceres45@gmail.com','98230001','Hondureña'
+GO
+
+EXECUTE SP_Docente_IngresarDocente '1225198900103','Angela','Beatriz','Montenegro','Chavez',1,25,'10-01-1989',30,'Soltero',12,'AngelaChavez10@gmail.com','91233201','Hondureña'
+GO
+
+EXECUTE SP_Docente_IngresarDocente '1202198900823','Briana','Nasaret','Espinoza','Bravo',1,26,'10-05-1989',30,'Soltero',12,'BrianaBravo06@gmail.com','91278821','Hondureña'
+GO
+
+----------------------------------------------------------------------------------------------------------------------------------------------
+----------------------------------------------------|Tabla de Tipo de cancelaciones|----------------------------------------------------------
+
+EXECUTE SP_TipoCancelacion_IngresarTipoCancelacion 'Periodo'
+EXECUTE SP_TipoCancelacion_IngresarTipoCancelacion 'Clase'
+GO
+
+----------------------------------------------------------------------------------------------------------------------------------------------
+-------------------------------------------------------------|Tabla de Pago|------------------------------------------------------------------
+
+EXECUTE SP_Pago_IngresarPago 1,3600,1,'02-03-2019',1,'0301199800240'
+EXECUTE SP_Pago_IngresarPago 1,3600,1,'02-03-2019',1,'0302199900013'
+EXECUTE SP_Pago_IngresarPago 1,3600,1,'02-03-2019',1,'0302199900843'
+EXECUTE SP_Pago_IngresarPago 1,3600,1,'02-03-2019',1,'0305199800443'
+EXECUTE SP_Pago_IngresarPago 1,3600,1,'02-03-2019',1,'0306199801243'
+EXECUTE SP_Pago_IngresarPago 1,3600,1,'02-03-2019',1,'0311199901443'
+EXECUTE SP_Pago_IngresarPago 1,3600,1,'02-03-2019',1,'0312200000443'
+EXECUTE SP_Pago_IngresarPago 1,3600,1,'02-03-2019',1,'0314199901442'
+EXECUTE SP_Pago_IngresarPago 1,3600,1,'02-03-2019',1,'0315199802443'
+EXECUTE SP_Pago_IngresarPago 1,3600,1,'02-03-2019',1,'0315199900223'
+
+EXECUTE SP_Pago_IngresarPago 2,3600,1,'02-03-2019',1,'0316199801443'
+EXECUTE SP_Pago_IngresarPago 2,3600,1,'02-03-2019',1,'0316199900228'
+EXECUTE SP_Pago_IngresarPago 2,3600,1,'02-03-2019',1,'0316199900443'
+EXECUTE SP_Pago_IngresarPago 2,3600,1,'02-03-2019',1,'0316200000253'
+EXECUTE SP_Pago_IngresarPago 2,3600,1,'02-03-2019',1,'0317199800423'
+EXECUTE SP_Pago_IngresarPago 2,3600,1,'02-03-2019',1,'0318199800400'
+EXECUTE SP_Pago_IngresarPago 2,3600,1,'02-03-2019',1,'0318199800423'
+EXECUTE SP_Pago_IngresarPago 2,3600,1,'02-03-2019',1,'0318199800463'
+EXECUTE SP_Pago_IngresarPago 2,3600,1,'02-03-2019',1,'0318199800463'
+EXECUTE SP_Pago_IngresarPago 2,3600,1,'02-03-2019',1,'0418199800429'
+GO
+
+----------------------------------------------------------------------------------------------------------------------------------------------
+------------------------------------------------------------|Tabla de Asesoria|---------------------------------------------------------------
+
+EXECUTE SP_Asesoria_IngresarAsesoria '0301199800240', 61
+EXECUTE SP_Asesoria_IngresarAsesoria '0302199900013', 61
+EXECUTE SP_Asesoria_IngresarAsesoria '0302199900843', 61
+EXECUTE SP_Asesoria_IngresarAsesoria '0305199800443', 61
+EXECUTE SP_Asesoria_IngresarAsesoria '0306199801243', 61
+EXECUTE SP_Asesoria_IngresarAsesoria '0311199901443', 61
+EXECUTE SP_Asesoria_IngresarAsesoria '0312200000443', 61
+EXECUTE SP_Asesoria_IngresarAsesoria '0314199901442', 61
+EXECUTE SP_Asesoria_IngresarAsesoria '0315199802443', 61
+EXECUTE SP_Asesoria_IngresarAsesoria '0315199900223', 61
+
+EXECUTE SP_Asesoria_IngresarAsesoria '0316199801443', 30
+EXECUTE SP_Asesoria_IngresarAsesoria '0316199900228', 30
+EXECUTE SP_Asesoria_IngresarAsesoria '0316199900443', 30
+EXECUTE SP_Asesoria_IngresarAsesoria '0316200000253', 30
+EXECUTE SP_Asesoria_IngresarAsesoria '0317199800423', 30
+EXECUTE SP_Asesoria_IngresarAsesoria '0318199800400', 30
+EXECUTE SP_Asesoria_IngresarAsesoria '0318199800423', 30
+EXECUTE SP_Asesoria_IngresarAsesoria '0318199800463', 30
+EXECUTE SP_Asesoria_IngresarAsesoria '0416199800443', 30
+EXECUTE SP_Asesoria_IngresarAsesoria '0418199800429', 30
+GO
+
+--------------------------------------------------------------------------------------------------------------------------------------------
+EXECUTE SP_Horario_IngresarHorario '0115198900123','03:00',61,1,'L-J'
+EXECUTE SP_Horario_IngresarHorario '1202198900823','02:00',30,2,'L-J'
+GO
+
+--------------------------------------------------------------------------------------------------------------------------------------------
+------------------------------------------------------------------|Tabla Periodo|-----------------------------------------------------------
+
+EXECUTE SP_Periodo_IngresarPeriodo 'Primero',2019
+EXECUTE SP_Periodo_IngresarPeriodo 'Segundo',2019
+EXECUTE SP_Periodo_IngresarPeriodo 'Tercer',2019
+GO
+
+--------------------------------------------------------------------------------------------------------------------------------------------
+-----------------------------------------------------------------|Tabla Matricula|----------------------------------------------------------
+
+EXECUTE SP_Matricula_IngresarMatricula '0318199800463', 1 , '03-04-2019', 1
+EXECUTE SP_Matricula_IngresarMatricula '0317199800423', 1 , '03-04-2019', 1
+EXECUTE SP_Matricula_IngresarMatricula '0318199800423', 1 , '03-04-2019', 1
+EXECUTE SP_Matricula_IngresarMatricula '0418199800429', 1 , '03-04-2019', 1
+EXECUTE SP_Matricula_IngresarMatricula '0318199800400', 1 , '03-04-2019', 1
+EXECUTE SP_Matricula_IngresarMatricula '0316200000253', 1 , '03-04-2019', 1
+EXECUTE SP_Matricula_IngresarMatricula '0315199900223', 1 , '03-04-2019', 1
+EXECUTE SP_Matricula_IngresarMatricula '0316199900228', 1 , '03-04-2019', 1
+EXECUTE SP_Matricula_IngresarMatricula '0316199900443', 1 , '03-04-2019', 1
+EXECUTE SP_Matricula_IngresarMatricula '0302199900843', 1 , '03-04-2019', 1
+EXECUTE SP_Matricula_IngresarMatricula '0305199800443', 1 , '03-04-2019', 1
+EXECUTE SP_Matricula_IngresarMatricula '0416199800443', 1 , '03-04-2019', 1
+EXECUTE SP_Matricula_IngresarMatricula '0316199801443', 1 , '03-04-2019', 1
+EXECUTE SP_Matricula_IngresarMatricula '0315199802443', 1 , '03-04-2019', 1
+EXECUTE SP_Matricula_IngresarMatricula '0306199801243', 1 , '03-04-2019', 1
+EXECUTE SP_Matricula_IngresarMatricula '0311199901443', 1 , '03-04-2019', 1
+EXECUTE SP_Matricula_IngresarMatricula '0314199901442', 1 , '03-04-2019', 1
+EXECUTE SP_Matricula_IngresarMatricula '0312200000443', 1 , '03-04-2019', 1
+EXECUTE SP_Matricula_IngresarMatricula '0302199900013', 1 , '03-04-2019', 1
+EXECUTE SP_Matricula_IngresarMatricula '0301199800240', 1 , '03-04-2019', 1
+GO
+
+---------------------------------------------------------------------------------------------------------------------------------------------------------
+------------------------------------------------------------|Tabla de alumnos por clase|-----------------------------------------------------------------
+
+EXECUTE SP_AlumnoClase_IngresarAlumnoClase 1,'0301199800240'
+EXECUTE SP_AlumnoClase_IngresarAlumnoClase 1,'0302199900013'
+EXECUTE SP_AlumnoClase_IngresarAlumnoClase 1,'0302199900843'
+EXECUTE SP_AlumnoClase_IngresarAlumnoClase 1,'0305199800443'
+EXECUTE SP_AlumnoClase_IngresarAlumnoClase 1,'0306199801243'
+EXECUTE SP_AlumnoClase_IngresarAlumnoClase 1,'0311199901443'
+EXECUTE SP_AlumnoClase_IngresarAlumnoClase 1,'0312200000443'
+EXECUTE SP_AlumnoClase_IngresarAlumnoClase 1,'0314199901442'
+EXECUTE SP_AlumnoClase_IngresarAlumnoClase 1,'0315199802443'
+EXECUTE SP_AlumnoClase_IngresarAlumnoClase 1,'0315199900223'
+
+EXECUTE SP_AlumnoClase_IngresarAlumnoClase 2,'0316199801443'
+EXECUTE SP_AlumnoClase_IngresarAlumnoClase 2,'0316199900228'
+EXECUTE SP_AlumnoClase_IngresarAlumnoClase 2,'0316199900443'
+EXECUTE SP_AlumnoClase_IngresarAlumnoClase 2,'0316200000253'
+EXECUTE SP_AlumnoClase_IngresarAlumnoClase 2,'0317199800423'
+EXECUTE SP_AlumnoClase_IngresarAlumnoClase 2,'0318199800400'
+EXECUTE SP_AlumnoClase_IngresarAlumnoClase 2,'0318199800423'
+EXECUTE SP_AlumnoClase_IngresarAlumnoClase 2,'0318199800463'
+EXECUTE SP_AlumnoClase_IngresarAlumnoClase 2,'0416199800443'
+EXECUTE SP_AlumnoClase_IngresarAlumnoClase 2,'0418199800429'
+GO
